@@ -1,0 +1,5 @@
+@props(['data'])
+
+<section class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 prose lg:prose-xl dark:prose-invert">
+    {!! $data['content'] !!}
+</section>
