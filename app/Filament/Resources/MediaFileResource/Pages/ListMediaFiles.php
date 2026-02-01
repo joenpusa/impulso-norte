@@ -10,10 +10,16 @@ class ListMediaFiles extends ListRecords
 {
     protected static string $resource = MediaFileResource::class;
 
+    public function getBreadcrumb(): ?string
+    {
+        return 'Listado';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Nuevo Archivo'),
         ];
     }
 }

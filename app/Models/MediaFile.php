@@ -17,4 +17,13 @@ class MediaFile extends Model
     {
         return asset('storage/' . $this->path);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($mediaFile) {
+            if ($mediaFile->path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($mediaFile->path);
+            }
+        });
+    }
 }

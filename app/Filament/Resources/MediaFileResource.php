@@ -56,26 +56,27 @@ class MediaFileResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'md' => 2,
+                'xl' => 3,
+            ])
+            ->recordUrl(null) // Disable click to edit
             ->columns([
-                Tables\Columns\ImageColumn::make('path')
-                    ->label('Vista Previa')
-                    ->square()
-                    ->visibility('public'),
-                Tables\Columns\TextColumn::make('title')
-                    ->label('Nombre')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('url')
-                    ->label('URL Pública')
-                    ->getStateUsing(fn(MediaFile $record) => $record->url)
-                    ->copyable()
-                    ->copyMessage('URL copiada al portapapeles')
-                    ->copyMessageDuration(1500)
-                    ->icon('heroicon-o-link'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Fecha')
-                    ->dateTime()
-                    ->sortable(),
+                Tables\Columns\Layout\Stack::make([
+                    Tables\Columns\ImageColumn::make('path')
+                        ->label('Imagen')
+                        ->height('200px')
+                        ->width('100%')
+                        ->extraImgAttributes(['class' => 'object-cover w-full h-full rounded-lg']),
+
+                    Tables\Columns\Layout\Stack::make([
+                        Tables\Columns\TextColumn::make('title')
+                            ->label('Nombre')
+                            ->weight('bold')
+                            ->searchable()
+                            ->sortable(),
+                    ])->space(1),
+                ])->space(3),
             ])
             ->filters([
                 Tables\Filters\Filter::make('created_at')
@@ -96,15 +97,38 @@ class MediaFileResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('copy_url')
+                    ->label('Copiar URL')
+                    ->icon('heroicon-o-clipboard')
+                    ->iconButton()
+                    ->color('primary')
+                    ->action(function () {}) // No server-side action needed, purely client-side copy
+                    ->extraAttributes(function (MediaFile $record) {
+                        return [
+                            'x-on:click' => 'window.navigator.clipboard.writeText("' . $record->url . '"); $tooltip("URL copiada al portapapeles", { timeout: 1500 });',
+                            'title' => 'Copiar URL',
+                        ];
+                    }),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Eliminar')
+                    ->modalHeading('¿Eliminar archivo?')
+                    ->modalDescription('¿Estás seguro de que deseas eliminar este archivo? Esta acción no se puede deshacer y el archivo se borrará del servidor.')
+                    ->modalSubmitActionLabel('Sí, eliminar')
+                    ->modalCancelActionLabel('Cancelar'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Eliminar seleccionados')
+                        ->modalHeading('¿Eliminar archivos seleccionados?')
+                        ->modalDescription('¿Estás seguro de que deseas eliminar los archivos seleccionados? Se borrarán permanentemente del servidor.')
+                        ->modalSubmitActionLabel('Sí, eliminar todos')
+                        ->modalCancelActionLabel('Cancelar'),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('No hay archivos multimedia')
+            ->emptyStateDescription('Sube un archivo para comenzar.');
     }
 
     public static function getRelations(): array
