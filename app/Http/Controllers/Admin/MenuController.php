@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Menu;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class MenuController extends Controller
 {
@@ -14,7 +15,7 @@ class MenuController extends Controller
     public function index()
     {
         $menus = Menu::paginate(10);
-        return view('admin.menus.index', compact('menus'));
+        return Inertia::render('Admin/Menus/Index', compact('menus'));
     }
 
     /**
@@ -22,7 +23,10 @@ class MenuController extends Controller
      */
     public function create()
     {
-        return view('admin.menus.create');
+        // Usually redundant with modals or we can use a dedicated page. 
+        // For now, let's assuming we might want a page or just handle it in Index with modal.
+        // Let's render a Vue Create page
+        return Inertia::render('Admin/Menus/Create');
     }
 
     /**
@@ -46,7 +50,9 @@ class MenuController extends Controller
      */
     public function show(Menu $menu)
     {
-        //
+        // This is important for managing items!
+        $menu->load('items.children');
+        return Inertia::render('Admin/Menus/Show', compact('menu'));
     }
 
     /**
@@ -54,7 +60,7 @@ class MenuController extends Controller
      */
     public function edit(Menu $menu)
     {
-        return view('admin.menus.edit', compact('menu'));
+        return Inertia::render('Admin/Menus/Edit', compact('menu'));
     }
 
     /**

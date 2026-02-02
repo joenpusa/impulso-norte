@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class PageController extends Controller
 {
@@ -14,7 +15,7 @@ class PageController extends Controller
     public function index()
     {
         $pages = Page::paginate(10);
-        return view('admin.pages.index', compact('pages'));
+        return Inertia::render('Admin/Pages/Index', compact('pages'));
     }
 
     /**
@@ -22,7 +23,7 @@ class PageController extends Controller
      */
     public function create()
     {
-        return view('admin.pages.create');
+        return Inertia::render('Admin/Pages/Create');
     }
 
     /**
@@ -57,7 +58,7 @@ class PageController extends Controller
      */
     public function edit(Page $page)
     {
-        return view('admin.pages.edit', compact('page'));
+        return Inertia::render('Admin/Pages/Edit', compact('page'));
     }
 
     /**

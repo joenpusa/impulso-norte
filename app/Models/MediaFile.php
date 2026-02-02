@@ -13,6 +13,8 @@ class MediaFile extends Model
         'size',
     ];
 
+    protected $appends = ['url'];
+
     public function getUrlAttribute()
     {
         return asset('storage/' . $this->path);
