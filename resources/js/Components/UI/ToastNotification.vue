@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch, ref } from 'vue';
+import { onMounted, onUnmounted, watch, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
 const page = usePage();
@@ -20,6 +20,22 @@ watch(() => page.props.flash, (flash) => {
         setTimeout(() => show.value = false, 4000);
     }
 }, { deep: true });
+
+const onNotify = (event) => {
+    message.value = event.detail.message;
+    type.value = event.detail.type || 'success';
+    show.value = true;
+    const duration = type.value === 'success' ? 3000 : 4000;
+    setTimeout(() => show.value = false, duration);
+};
+
+onMounted(() => {
+    window.addEventListener('notify', onNotify);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('notify', onNotify);
+});
 </script>
 
 <template>

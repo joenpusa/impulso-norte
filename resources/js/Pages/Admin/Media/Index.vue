@@ -73,12 +73,52 @@ const deleteItem = () => {
 
 // Copy URL
 const copyUrl = (url) => {
-    navigator.clipboard.writeText(url).then(() => {
-        // Optional: show local tooltip or rely on global toast if we triggered one manually.
-        // But since we have global toast listening to flash, we can't trigger it easily without a page visit.
-        // We'll just use a browser alert or console for now, or maybe a local reactive state "Copied!" text.
-        alert('URL copiada: ' + url);
-    });
+    if (!url) return;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+            window.dispatchEvent(new CustomEvent('notify', {
+                detail: { message: 'Enlace copiado al portapapeles', type: 'success' }
+            }));
+        }).catch((err) => {
+            console.error('Copy failed', err);
+            fallbackCopyTextToClipboard(url);
+        });
+    } else {
+        fallbackCopyTextToClipboard(url);
+    }
+};
+
+const fallbackCopyTextToClipboard = (text) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Ensure it's not visible but part of the DOM
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            window.dispatchEvent(new CustomEvent('notify', {
+                detail: { message: 'Enlace copiado al portapapeles (fallback)', type: 'success' }
+            }));
+        } else {
+            throw new Error('Fallback copy failed');
+        }
+    } catch (err) {
+        console.error('Fallback copy error', err);
+        window.dispatchEvent(new CustomEvent('notify', {
+            detail: { message: 'Error al actualizar el portapapeles', type: 'error' }
+        }));
+    }
+
+    document.body.removeChild(textArea);
 };
 </script>
 
