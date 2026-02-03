@@ -7,46 +7,39 @@ import TextInput from '@/Components/TextInput.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import ToastNotification from '@/Components/UI/ToastNotification.vue';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
 const props = defineProps({
     settings: Object,
 });
 
-const activeTab = ref('general');
+const activeTab = ref('header');
+const showCode = ref({ header: false, footer: false });
 
 const form = useForm({
-    site_title: props.settings.site_title || '',
-    header_logo: null,
-    contact_email: props.settings.contact_email || '',
-    phone: props.settings.phone || '',
-    footer_text: props.settings.footer_text || '',
-    facebook_url: props.settings.facebook_url || '',
-    twitter_url: props.settings.twitter_url || '',
-    instagram_url: props.settings.instagram_url || '',
-    primary_color: props.settings.primary_color || '#3b82f6',
-    header_bg_color: props.settings.header_bg_color || '#ffffff',
-    footer_bg_color: props.settings.footer_bg_color || '#1f2937',
+    site_title: props.settings.site_title || '', // Keep for SEO
+    header_content: props.settings.header_content || '',
+    footer_content: props.settings.footer_content || '',
+    background_type: props.settings.background_type || 'color', // color, image, gradient
+    background_value: props.settings.background_value || '#f9fafb', // hex, url, or gradient string
+    custom_css: props.settings.custom_css || '',
 });
-
-// Helper validation (simplified)
-const logoPreview = ref(props.settings.header_logo ? '/storage/' + props.settings.header_logo : null);
-
-const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    form.header_logo = file;
-    if (file) {
-        logoPreview.value = URL.createObjectURL(file);
-    }
-};
 
 const submit = () => {
     form.post(route('admin.settings.store'), {
         preserveScroll: true,
         onSuccess: () => {
-             // Reset file input if needed, but keeping values is fine for settings
+             // Handle success
         }
     });
 };
+
+const bgTypes = [
+    { value: 'color', label: 'Color Sólido' },
+    { value: 'image', label: 'Imagen (URL)' },
+    { value: 'gradient', label: 'Degradado' },
+];
 </script>
 
 <template>
@@ -54,7 +47,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Ajustes Generales</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Configuración del Sitio</h2>
         </template>
 
         <div class="py-12">
@@ -65,94 +58,104 @@ const submit = () => {
                         <!-- Tabs -->
                         <div class="border-b border-gray-200 mb-6">
                             <nav class="-mb-px flex space-x-8">
-                                <button @click="activeTab = 'general'" :class="{'border-blue-500 text-blue-600': activeTab === 'general', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'general'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                    General y Logo
+                                <button @click="activeTab = 'header'" :class="{'border-blue-500 text-blue-600': activeTab === 'header', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'header'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    Header
                                 </button>
-                                <button @click="activeTab = 'social'" :class="{'border-blue-500 text-blue-600': activeTab === 'social', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'social'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                    Redes Sociales y Footer
+                                <button @click="activeTab = 'footer'" :class="{'border-blue-500 text-blue-600': activeTab === 'footer', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'footer'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    Footer
                                 </button>
                                 <button @click="activeTab = 'styles'" :class="{'border-blue-500 text-blue-600': activeTab === 'styles', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'styles'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                    Estilos y Colores
+                                    Fondo y Estilos
                                 </button>
                             </nav>
                         </div>
 
                         <form @submit.prevent="submit">
-                            <!-- General Tab -->
-                            <div v-show="activeTab === 'general'" class="space-y-6">
+                            <!-- Header Tab -->
+                            <div v-show="activeTab === 'header'" class="space-y-6">
                                 <div>
-                                    <InputLabel value="Título del Sitio" />
-                                    <TextInput v-model="form.site_title" type="text" class="mt-1 block w-full" />
+                                    <InputLabel value="Título del Sitio (Para SEO)" class="mb-2"/>
+                                    <TextInput v-model="form.site_title" type="text" class="mt-1 block w-full" placeholder="Ej: Impulso Norte" />
+                                    <p class="text-xs text-gray-500 mt-1">Este título aparecerá en la pestaña del navegador.</p>
                                 </div>
-                                <div>
-                                    <InputLabel value="Logo del Header" />
-                                    <div class="mt-2 flex items-center gap-4">
-                                        <div v-if="logoPreview" class="h-16 w-16 border rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-                                            <img :src="logoPreview" class="max-h-full max-w-full" />
-                                        </div>
-                                        <input type="file" @change="handleLogoChange" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                <div class="mt-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <InputLabel value="Contenido del Header" />
+                                        <button type="button" @click="showCode.header = !showCode.header" class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                            {{ showCode.header ? 'Ver Editor Visual' : 'Ver Código HTML' }}
+                                        </button>
                                     </div>
-                                </div>
-                                <div>
-                                    <InputLabel value="Email de Contacto" />
-                                    <TextInput v-model="form.contact_email" type="email" class="mt-1 block w-full" />
-                                </div>
-                                <div>
-                                    <InputLabel value="Teléfono" />
-                                    <TextInput v-model="form.phone" type="text" class="mt-1 block w-full" />
+                                    <p class="text-sm text-gray-500 mb-2">Diseñe el encabezado aquí. Puede agregar logos usando URLs de la sección Multimedia.</p>
+                                    
+                                    <div v-if="!showCode.header" class="bg-white">
+                                        <QuillEditor theme="snow" v-model:content="form.header_content" contentType="html" toolbar="full" style="height: 300px;" />
+                                    </div>
+                                    <div v-else>
+                                        <textarea v-model="form.header_content" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm h-[342px]" placeholder="<header>...</header>"></textarea>
+                                        <p class="text-xs text-orange-500 mt-1">⚠ Editando código fuente HTML directamente.</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Social Tab -->
-                            <div v-show="activeTab === 'social'" class="space-y-6">
+                            <!-- Footer Tab -->
+                            <div v-show="activeTab === 'footer'" class="space-y-6">
                                 <div>
-                                    <InputLabel value="Texto del Footer" />
-                                    <textarea v-model="form.footer_text" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="3"></textarea>
-                                </div>
-                                <div>
-                                    <InputLabel value="Facebook URL" />
-                                    <TextInput v-model="form.facebook_url" type="url" class="mt-1 block w-full" placeholder="https://facebook.com/..." />
-                                </div>
-                                <div>
-                                    <InputLabel value="Twitter / X URL" />
-                                    <TextInput v-model="form.twitter_url" type="url" class="mt-1 block w-full" placeholder="https://twitter.com/..." />
-                                </div>
-                                <div>
-                                    <InputLabel value="Instagram URL" />
-                                    <TextInput v-model="form.instagram_url" type="url" class="mt-1 block w-full" placeholder="https://instagram.com/..." />
+                                    <div class="flex justify-between items-center mb-2">
+                                        <InputLabel value="Contenido del Footer" />
+                                        <button type="button" @click="showCode.footer = !showCode.footer" class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                            {{ showCode.footer ? 'Ver Editor Visual' : 'Ver Código HTML' }}
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-2">Diseñe el pie de página aquí.</p>
+                                    
+                                    <div v-if="!showCode.footer" class="bg-white">
+                                        <QuillEditor theme="snow" v-model:content="form.footer_content" contentType="html" toolbar="full" style="height: 300px;" />
+                                    </div>
+                                    <div v-else>
+                                        <textarea v-model="form.footer_content" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm h-[342px]" placeholder="<footer>...</footer>"></textarea>
+                                         <p class="text-xs text-orange-500 mt-1">⚠ Editando código fuente HTML directamente.</p>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Styles Tab -->
                             <div v-show="activeTab === 'styles'" class="space-y-6">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <InputLabel value="Color Primario" />
-                                        <div class="mt-1 flex items-center gap-2">
-                                            <input type="color" v-model="form.primary_color" class="h-10 w-20 border rounded cursor-pointer" />
-                                            <span class="text-sm text-gray-600">{{ form.primary_color }}</span>
-                                        </div>
+                                <div>
+                                    <InputLabel value="Tipo de Fondo" class="mb-2"/>
+                                    <select v-model="form.background_type" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3">
+                                        <option v-for="type in bgTypes" :key="type.value" :value="type.value">{{ type.label }}</option>
+                                    </select>
+                                </div>
+
+                                <div v-if="form.background_type === 'color'">
+                                    <InputLabel value="Color de Fondo" class="mb-2" />
+                                    <div class="flex items-center gap-4">
+                                        <input type="color" v-model="form.background_value" class="h-10 w-20 border rounded cursor-pointer" />
+                                        <TextInput v-model="form.background_value" type="text" class="w-40" />
                                     </div>
-                                    <div>
-                                        <InputLabel value="Fondo del Header" />
-                                        <div class="mt-1 flex items-center gap-2">
-                                            <input type="color" v-model="form.header_bg_color" class="h-10 w-20 border rounded cursor-pointer" />
-                                            <span class="text-sm text-gray-600">{{ form.header_bg_color }}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <InputLabel value="Fondo del Footer" />
-                                        <div class="mt-1 flex items-center gap-2">
-                                            <input type="color" v-model="form.footer_bg_color" class="h-10 w-20 border rounded cursor-pointer" />
-                                            <span class="text-sm text-gray-600">{{ form.footer_bg_color }}</span>
-                                        </div>
-                                    </div>
+                                </div>
+
+                                <div v-if="form.background_type === 'image'">
+                                    <InputLabel value="URL de la Imagen" class="mb-2" />
+                                    <TextInput v-model="form.background_value" type="text" class="w-full" placeholder="https://..." />
+                                    <p class="text-xs text-gray-500 mt-1">Copie la URL desde la sección Multimedia.</p>
+                                </div>
+
+                                <div v-if="form.background_type === 'gradient'">
+                                    <InputLabel value="CSS del Degradado" class="mb-2" />
+                                    <TextInput v-model="form.background_value" type="text" class="w-full" placeholder="linear-gradient(to right, #ff7e5f, #feb47b)" />
+                                    <div class="mt-2 h-20 w-full rounded border" :style="{ background: form.background_value }"></div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <InputLabel value="Estilos CSS Personalizados Globales (Body)" class="mb-2" />
+                                    <textarea v-model="form.custom_css" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm h-32" placeholder="body { font-family: 'Roboto', sans-serif; }"></textarea>
                                 </div>
                             </div>
 
                             <div class="mt-8 flex justify-end">
                                 <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                    Guardar Cambios
+                                    Guardar Configuración
                                 </PrimaryButton>
                             </div>
                         </form>
