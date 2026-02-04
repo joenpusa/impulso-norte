@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
-import { watch, ref } from 'vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -11,110 +11,222 @@ import Checkbox from '@/Components/Checkbox.vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 const props = defineProps({
-    page: Object, // Optional, implies Edit mode if present
+    page: Object,
 });
 
+// Basic Info Form
 const form = useForm({
-    title: props.page ? props.page.title : '',
-    slug: props.page ? props.page.slug : '',
-    content: props.page ? props.page.content : '',
-    is_published: props.page ? Boolean(props.page.is_published) : false,
-    seo_title: props.page ? props.page.seo_title : '',
-    seo_description: props.page ? props.page.seo_description : '',
+    title: props.page.title || '',
+    is_published: props.page.is_published ? true : false,
+    seo_title: props.page.seo_title || '',
+    seo_description: props.page.seo_description || '',
 });
 
-// Auto-generate slug from title if creating
-if (!props.page) {
-    watch(() => form.title, (newTitle) => {
-        form.slug = newTitle
-            .toLowerCase()
-            .replace(/[^a-z0-9 -]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-');
+const submitBasicInfo = () => {
+    form.put(route('admin.pages.update', props.page.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Toast or notification handled by layout usually
+        }
     });
-}
+};
 
-const submit = () => {
-    if (props.page) {
-        form.put(route('admin.pages.update', props.page.id));
-    } else {
-        form.post(route('admin.pages.store'));
+// --- Elements Management ---
+
+const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.elements)) : []);
+
+// Map old content to new sections if needed? 
+// The controller handles creating sections, so if we start fresh we check elements.
+// If elements is empty but legacy 'content' exists, we could migrate it, but user didn't ask.
+
+const addElement = (type) => {
+    let content = '';
+    if (type === 'carousel') {
+        content = [];
+    }
+    
+    elements.value.push({
+        id: null, // New element
+        type: type,
+        content: content,
+        order: elements.value.length,
+    });
+};
+
+const removeElement = (index) => {
+    if (confirm('¿Eliminar esta sección?')) {
+        elements.value.splice(index, 1);
+        updateOrder();
     }
 };
+
+const moveUp = (index) => {
+    if (index > 0) {
+        const item = elements.value[index];
+        elements.value.splice(index, 1);
+        elements.value.splice(index - 1, 0, item);
+        updateOrder();
+    }
+};
+
+const moveDown = (index) => {
+    if (index < elements.value.length - 1) {
+        const item = elements.value[index];
+        elements.value.splice(index, 1);
+        elements.value.splice(index + 1, 0, item);
+        updateOrder();
+    }
+};
+
+const updateOrder = () => {
+    elements.value.forEach((el, index) => {
+        el.order = index;
+    });
+};
+
+// Carousel Logic
+const addImageToCarousel = (element) => {
+    const url = prompt('Ingrese URL de la imagen:');
+    if (url) {
+        if (!Array.isArray(element.content)) element.content = [];
+        element.content.push(url);
+    }
+};
+const removeImageFromCarousel = (element, imgIndex) => {
+    element.content.splice(imgIndex, 1);
+};
+
+const saveElements = () => {
+    updateOrder();
+    router.put(route('admin.pages.update', props.page.id), {
+        elements: elements.value
+    }, {
+        preserveScroll: true
+    });
+};
+
 </script>
 
 <template>
-    <Head :title="page ? 'Editar Página' : 'Crear Página'" />
+    <Head title="Editar Página" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ page ? 'Editar Página' : 'Crear Nueva Página' }}
-            </h2>
+            <div class="flex justify-between items-center">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    Editar Página: {{ page.title }}
+                </h2>
+                <a :href="`/pages/${page.slug}`" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-900" v-if="page.slug">
+                    Ver Página
+                </a>
+            </div>
         </template>
 
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+                
+                <!-- 1. Basic Information -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        
-                        <form @submit.prevent="submit" class="space-y-6">
-                            
+                        <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Información General</h3>
+                        <form @submit.prevent="submitBasicInfo" class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <InputLabel value="Título" />
-                                    <TextInput v-model="form.title" type="text" class="mt-1 block w-full text-lg font-semibold" required />
+                                    <TextInput v-model="form.title" type="text" class="mt-1 block w-full" required />
                                     <InputError :message="form.errors.title" class="mt-2" />
                                 </div>
+                                <div class="flex items-end pb-2">
+                                    <label class="flex items-center">
+                                        <Checkbox v-model:checked="form.is_published" />
+                                        <span class="ml-2 text-sm text-gray-600 font-bold">Página Activa</span>
+                                    </label>
+                                </div>
                                 <div>
-                                    <InputLabel value="Slug (URL)" />
-                                    <TextInput v-model="form.slug" type="text" class="mt-1 block w-full bg-gray-50 text-gray-600" required />
-                                    <InputError :message="form.errors.slug" class="mt-2" />
+                                    <InputLabel value="Título SEO" />
+                                    <TextInput v-model="form.seo_title" type="text" class="mt-1 block w-full" />
+                                </div>
+                                <div>
+                                    <InputLabel value="Descripción SEO" />
+                                    <TextInput v-model="form.seo_description" type="text" class="mt-1 block w-full" />
                                 </div>
                             </div>
-
-                            <div>
-                                <InputLabel value="Contenido" class="mb-2" />
-                                <!-- Rich Text Editor -->
-                                <RichTextEditor v-model="form.content" />
-                                <InputError :message="form.errors.content" class="mt-2" />
+                            <div class="flex justify-end">
+                                <PrimaryButton :disabled="form.processing">Guardar Información Básica</PrimaryButton>
                             </div>
-
-                            <div class="border-t pt-4 mt-4">
-                                <h3 class="font-medium text-gray-900 mb-4">Configuración SEO y Estado</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="space-y-4">
-                                        <div>
-                                            <InputLabel value="Título SEO (Meta Title)" />
-                                            <TextInput v-model="form.seo_title" type="text" class="mt-1 block w-full" placeholder="Dejar vacío para usar el título de la página" />
-                                        </div>
-                                        <div>
-                                            <InputLabel value="Descripción SEO (Meta Description)" />
-                                            <textarea v-model="form.seo_description" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start pt-6">
-                                        <label class="flex items-center">
-                                            <Checkbox v-model:checked="form.is_published" />
-                                            <span class="ml-2 text-sm text-gray-600 font-bold">Publicar Inmediatamente</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-end gap-4 mt-6">
-                                <Link :href="route('admin.pages.index')">
-                                    <SecondaryButton>Cancelar</SecondaryButton>
-                                </Link>
-                                <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                    {{ page ? 'Guardar Cambios' : 'Crear Página' }}
-                                </PrimaryButton>
-                            </div>
-
                         </form>
+                    </div>
+                </div>
+
+                <!-- 2. Sections Builder -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900">
+                        <div class="flex justify-between items-center border-b pb-2 mb-6">
+                            <h3 class="text-lg font-medium text-gray-900">Secciones de la Página</h3>
+                            <div class="flex gap-2">
+                                <SecondaryButton @click="addElement('title')" class="text-xs">
+                                    + Título
+                                </SecondaryButton>
+                                <SecondaryButton @click="addElement('content')" class="text-xs">
+                                    + Contenido
+                                </SecondaryButton>
+                                <SecondaryButton @click="addElement('carousel')" class="text-xs">
+                                    + Carrusel
+                                </SecondaryButton>
+                            </div>
+                        </div>
+
+                        <!-- Elements List -->
+                        <div class="space-y-6" v-if="elements.length > 0">
+                            <div v-for="(element, index) in elements" :key="index" class="border rounded-lg p-4 bg-gray-50 relative group">
+                                
+                                <!-- Toolbar -->
+                                <div class="absolute top-2 right-2 flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                                    <button @click="moveUp(index)" class="p-1 hover:bg-gray-200 rounded" title="Subir">⬆️</button>
+                                    <button @click="moveDown(index)" class="p-1 hover:bg-gray-200 rounded" title="Bajar">⬇️</button>
+                                    <button @click="removeElement(index)" class="p-1 hover:bg-red-200 rounded text-red-600" title="Eliminar">🗑️</button>
+                                </div>
+
+                                <div class="pr-24">
+                                    <span class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2 block">{{ element.type }}</span>
+                                    
+                                    <!-- Type: Title -->
+                                    <div v-if="element.type === 'title'">
+                                        <TextInput v-model="element.content" type="text" class="w-full text-lg font-semibold" placeholder="Escriba el título de la sección..." />
+                                    </div>
+
+                                    <!-- Type: Content -->
+                                    <div v-if="element.type === 'content'">
+                                        <RichTextEditor v-model="element.content" placeholder="Escriba el contenido..." />
+                                    </div>
+
+                                    <!-- Type: Carousel -->
+                                    <div v-if="element.type === 'carousel'">
+                                        <div class="flex flex-wrap gap-2 mb-2">
+                                            <div v-for="(img, imgIdx) in element.content" :key="imgIdx" class="relative w-24 h-24 border rounded overflow-hidden">
+                                                <img :src="img" class="w-full h-full object-cover" />
+                                                <button @click="removeImageFromCarousel(element, imgIdx)" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 text-xs rounded-bl">x</button>
+                                            </div>
+                                            <button @click="addImageToCarousel(element)" class="w-24 h-24 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-gray-500 hover:text-gray-500">
+                                                + img
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500">Haga clic en "+" para agregar URL de imagen.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-8 text-gray-400 border-2 border-dashed rounded-lg">
+                            No hay secciones. Agregue una usando los botones de arriba.
+                        </div>
+
+                        <div class="mt-6 flex justify-end">
+                            <PrimaryButton @click="saveElements">Guardar Secciones</PrimaryButton>
+                        </div>
 
                     </div>
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>

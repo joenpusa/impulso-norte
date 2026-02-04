@@ -20,4 +20,9 @@ class Page extends Model
         'is_published' => 'boolean',
         'is_home' => 'boolean',
     ];
+
+    public function elements()
+    {
+        return $this->hasMany(PageElement::class)->orderBy('order');
+    }
 }

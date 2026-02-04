@@ -49,7 +49,6 @@ const deleteItem = () => {
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3">Título</th>
-                                        <th scope="col" class="px-6 py-3">Slug</th>
                                         <th scope="col" class="px-6 py-3">Estado</th>
                                         <th scope="col" class="px-6 py-3">Última Modificación</th>
                                         <th scope="col" class="px-6 py-3">Acciones</th>
@@ -60,9 +59,6 @@ const deleteItem = () => {
                                         <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                             {{ page.title }}
                                         </th>
-                                        <td class="px-6 py-4">
-                                            /{{ page.slug }}
-                                        </td>
                                         <td class="px-6 py-4">
                                             <span v-if="page.is_published" class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Publicado</span>
                                             <span v-else class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Borrador</span>

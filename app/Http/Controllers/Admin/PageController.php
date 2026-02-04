@@ -4,88 +4,109 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\PageElement;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $pages = Page::paginate(10);
         return Inertia::render('Admin/Pages/Index', compact('pages'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return Inertia::render('Admin/Pages/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:pages',
-            'content' => 'required|string',
             'is_published' => 'boolean',
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string|max:255',
         ]);
 
-        Page::create($validated);
+        // Auto-generate slug from title if not present, just for basic fallback
+        $validated['slug'] = Str::slug($validated['title']);
+        $validated['content'] = ''; // Empty content for legacy column
 
-        return redirect()->route('admin.pages.index')->with('success', 'Page created successfully.');
+        $page = Page::create($validated);
+
+        return redirect()->route('admin.pages.edit', $page)->with('success', 'Página creada. Ahora agregue secciones.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Page $page)
-    {
-        // Public viewing handled by PublicPageController
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Page $page)
     {
-        return Inertia::render('Admin/Pages/Edit', compact('page'));
+        return Inertia::render('Admin/Pages/Edit', [
+            'page' => $page->load('elements'),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Page $page)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:pages,slug,' . $page->id,
-            'content' => 'required|string',
-            'is_published' => 'boolean',
-            'seo_title' => 'nullable|string|max:255',
-            'seo_description' => 'nullable|string|max:255',
-        ]);
+        // Check if we are updating basic info or elements
+        if ($request->has('elements')) {
+            // Validate structure of elements
+            $data = $request->validate([
+                'elements' => 'array',
+                'elements.*.type' => 'required|string',
+                'elements.*.content' => 'nullable', // json or string
+                'elements.*.order' => 'integer',
+                'elements.*.id' => 'nullable|integer',
+            ]);
 
-        $page->update($validated);
+            // Sync elements
+            // Strategy: 
+            // 1. Get IDs from request
+            // 2. Delete elements not in request
+            // 3. Update or Create remaining
 
-        return redirect()->route('admin.pages.index')->with('success', 'Page updated successfully.');
+            $incomingIds = collect($data['elements'] ?? [])->pluck('id')->filter()->toArray();
+
+            // Delete missing
+            $page->elements()->whereNotIn('id', $incomingIds)->delete();
+
+            foreach ($request->elements as $elementData) {
+                if (isset($elementData['id'])) {
+                    $page->elements()->where('id', $elementData['id'])->update([
+                        'type' => $elementData['type'],
+                        'content' => $elementData['content'],
+                        'order' => $elementData['order'],
+                    ]);
+                } else {
+                    $page->elements()->create([
+                        'type' => $elementData['type'],
+                        'content' => $elementData['content'],
+                        'order' => $elementData['order'],
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Elementos guardados correctamente.');
+
+        } else {
+            // Basic Info Update
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'is_published' => 'boolean',
+                'seo_title' => 'nullable|string|max:255',
+                'seo_description' => 'nullable|string|max:255',
+            ]);
+
+            $page->update($validated);
+
+            return redirect()->back()->with('success', 'Información actualizada.');
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Page $page)
     {
         $page->delete();
-        return redirect()->route('admin.pages.index')->with('success', 'Page deleted successfully.');
+        return redirect()->route('admin.pages.index')->with('success', 'Página eliminada.');
     }
 }
