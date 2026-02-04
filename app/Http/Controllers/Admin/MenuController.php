@@ -52,7 +52,8 @@ class MenuController extends Controller
     {
         // This is important for managing items!
         $menu->load('items.children');
-        return Inertia::render('Admin/Menus/Show', compact('menu'));
+        $pages = \App\Models\Page::select('id', 'title', 'slug')->get(); // Fetch all pages (published or not? maybe all so admin can link drafts)
+        return Inertia::render('Admin/Menus/Show', compact('menu', 'pages'));
     }
 
     /**

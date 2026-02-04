@@ -9,6 +9,8 @@ import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
+import Spinner from '@/Components/UI/Spinner.vue';
+import ToastNotification from '@/Components/UI/ToastNotification.vue';
 
 const props = defineProps({
     page: Object,
@@ -26,18 +28,14 @@ const submitBasicInfo = () => {
     form.put(route('admin.pages.update', props.page.id), {
         preserveScroll: true,
         onSuccess: () => {
-            // Toast or notification handled by layout usually
+            // Toast automatically handled by ToastNotification via flash prop
         }
     });
 };
 
 // --- Elements Management ---
-
+const isSavingElements = ref(false);
 const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.elements)) : []);
-
-// Map old content to new sections if needed? 
-// The controller handles creating sections, so if we start fresh we check elements.
-// If elements is empty but legacy 'content' exists, we could migrate it, but user didn't ask.
 
 const addElement = (type) => {
     let content = '';
@@ -97,11 +95,18 @@ const removeImageFromCarousel = (element, imgIndex) => {
 };
 
 const saveElements = () => {
+    if (isSavingElements.value) return;
+
     updateOrder();
+    isSavingElements.value = true;
+
     router.put(route('admin.pages.update', props.page.id), {
         elements: elements.value
     }, {
-        preserveScroll: true
+        preserveScroll: true,
+        onFinish: () => {
+            isSavingElements.value = false;
+        }
     });
 };
 
@@ -152,7 +157,10 @@ const saveElements = () => {
                                 </div>
                             </div>
                             <div class="flex justify-end">
-                                <PrimaryButton :disabled="form.processing">Guardar Información Básica</PrimaryButton>
+                                <PrimaryButton :class="{ 'opacity-75': form.processing }" :disabled="form.processing">
+                                    <Spinner v-if="form.processing" />
+                                    Guardar Información Básica
+                                </PrimaryButton>
                             </div>
                         </form>
                     </div>
@@ -221,7 +229,11 @@ const saveElements = () => {
                         </div>
 
                         <div class="mt-6 flex justify-end">
-                            <PrimaryButton @click="saveElements">Guardar Secciones</PrimaryButton>
+                            <PrimaryButton @click="saveElements" :class="{ 'opacity-75': isSavingElements }" :disabled="isSavingElements">
+                                <Spinner v-if="isSavingElements" />
+                                <span v-if="isSavingElements">Guardando...</span>
+                                <span v-else>Guardar Secciones</span>
+                            </PrimaryButton>
                         </div>
 
                     </div>
@@ -229,5 +241,7 @@ const saveElements = () => {
 
             </div>
         </div>
+
+        <ToastNotification />
     </AuthenticatedLayout>
 </template>

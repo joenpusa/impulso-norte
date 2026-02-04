@@ -55,6 +55,11 @@ class PublicPageController extends Controller
     {
         $page = Page::where('slug', $slug)
             ->where('is_published', true)
+            ->with([
+                'elements' => function ($query) {
+                    $query->orderBy('order');
+                }
+            ])
             ->firstOrFail();
 
         return Inertia::render('Frontend/Page', [

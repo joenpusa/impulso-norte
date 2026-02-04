@@ -73,11 +73,14 @@ class PageController extends Controller
 
             foreach ($request->elements as $elementData) {
                 if (isset($elementData['id'])) {
-                    $page->elements()->where('id', $elementData['id'])->update([
-                        'type' => $elementData['type'],
-                        'content' => $elementData['content'],
-                        'order' => $elementData['order'],
-                    ]);
+                    $element = $page->elements()->find($elementData['id']);
+                    if ($element) {
+                        $element->update([
+                            'type' => $elementData['type'],
+                            'content' => $elementData['content'],
+                            'order' => $elementData['order'],
+                        ]);
+                    }
                 } else {
                     $page->elements()->create([
                         'type' => $elementData['type'],

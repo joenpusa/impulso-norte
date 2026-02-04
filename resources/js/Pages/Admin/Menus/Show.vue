@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -13,11 +13,13 @@ import ToastNotification from '@/Components/UI/ToastNotification.vue';
 
 const props = defineProps({
     menu: Object,
+    pages: Array, // Passed from controller
 });
 
 // Item Modal State
 const managingItem = ref(false);
 const editingItem = ref(false);
+
 const itemForm = useForm({
     id: null,
     menu_id: props.menu.id,
@@ -27,6 +29,7 @@ const itemForm = useForm({
     page_id: null,
     target: '_self',
     order: 0,
+    link_type: 'external', // 'external' or 'page' - local state helper
 });
 
 const openCreateItemModal = (parentId = null) => {
@@ -34,6 +37,7 @@ const openCreateItemModal = (parentId = null) => {
     itemForm.reset();
     itemForm.menu_id = props.menu.id;
     itemForm.parent_id = parentId;
+    itemForm.link_type = 'external';
     managingItem.value = true;
 };
 
@@ -47,8 +51,53 @@ const openEditItemModal = (item) => {
     itemForm.page_id = item.page_id;
     itemForm.target = item.target || '_self';
     itemForm.order = item.order;
+    // Determine link type based on data
+    if (item.page_id) {
+        itemForm.link_type = 'page';
+    } else {
+        itemForm.link_type = 'external';
+    }
     managingItem.value = true;
 };
+
+// Watch for Page selection to auto-fill URL/Slug logic
+watch(() => itemForm.page_id, (newPageId) => {
+    if (itemForm.link_type === 'page' && newPageId) {
+        const selectedPage = props.pages.find(p => p.id === newPageId);
+        if (selectedPage) {
+            // User requested: "el slug o url sebe ser el titulo de la pagina ajustado para version url web"
+            // Usually we just store page_id and backend resolves URL, OR we store the slug in the URL field.
+            // If we store page_id, the frontend menu renderer should handle the link generation via route('pages.show', page.slug).
+            // However, the request implies filling the URL field or dealing with slug.
+            // Let's assume we fill the URL field with the slug for visibility, or keep it synced.
+            // Ideally, if page_id is set, URL field might be ignored or used as override. Use page slug.
+            // I'll auto-fill the URL field with the slug but keep it editable if needed? 
+            // Actually usually if page_id is used, URL is derived. 
+            // But let's auto-fill the URL field with the page slug just in case the system relies on 'url' column.
+            // If the page has a slug, use it. If not, generate from title.
+            
+            // Wait, existing logic in other projects usually uses `url` column for custom links and `page_id` relationship for known pages.
+            // I will clear URL field if page is selected to avoid confusion, OR set it to the slug.
+            // Let's set it to the slug as a visual indicator.
+            itemForm.url = selectedPage.slug || ''; 
+            
+            // Also user might want to auto-fill Title if empty?
+            if (!itemForm.title) {
+                itemForm.title = selectedPage.title;
+            }
+        }
+    }
+});
+
+// Watch link type to clear fields if switching?
+watch(() => itemForm.link_type, (newType) => {
+    if (newType === 'external') {
+        itemForm.page_id = null;
+        itemForm.url = ''; // Reset for manual entry
+    } else {
+        itemForm.url = ''; // Will be filled by page selection
+    }
+});
 
 const submitItemForm = () => {
     if (editingItem.value) {
@@ -103,10 +152,16 @@ const deleteItem = () => {
                         <div class="space-y-4">
                             <div v-for="item in menu.items" :key="item.id" class="border rounded-lg p-4 bg-gray-50">
                                 <div class="flex justify-between items-center">
-                                    <div class="font-medium text-gray-900">
+                                    <div class="font-medium text-gray-900 flex items-center gap-2">
                                         {{ item.title }}
-                                        <span class="text-xs text-gray-500 ml-2" v-if="item.url || item.page_id">
-                                            ({{ item.page_id ? 'Página ID: ' + item.page_id : item.url }})
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded" v-if="item.page_id">
+                                            Página
+                                        </span>
+                                        <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded" v-else>
+                                            Enlace: {{ item.url }}
+                                        </span>
+                                        <span class="text-xs text-gray-400" v-if="item.target === '_blank'">
+                                            (Nueva Pestaña)
                                         </span>
                                     </div>
                                     <div class="flex gap-2 text-sm">
@@ -119,10 +174,10 @@ const deleteItem = () => {
                                 <!-- Children -->
                                 <div v-if="item.children && item.children.length > 0" class="mt-3 pl-6 border-l-2 border-gray-200 space-y-2">
                                     <div v-for="child in item.children" :key="child.id" class="bg-white border rounded p-3 flex justify-between items-center">
-                                        <div class="text-sm text-gray-700">
-                                            {{ child.title }}
-                                             <span class="text-xs text-gray-500 ml-2">
-                                                {{ child.page_id ? 'Página' : (child.url ? 'Link' : '') }}
+                                        <div class="text-sm text-gray-700 font-medium">
+                                             {{ child.title }}
+                                             <span class="text-xs text-gray-500 font-normal ml-2">
+                                                - {{ child.page_id ? 'Página' : 'Enlace' }}
                                             </span>
                                         </div>
                                         <div class="flex gap-2 text-xs">
@@ -147,26 +202,65 @@ const deleteItem = () => {
             <div class="p-6">
                 <h2 class="text-lg font-medium text-gray-900">{{ editingItem ? 'Editar Ítem' : 'Añadir Ítem' }}</h2>
                 <div class="mt-6 space-y-4">
+                    
+                    <!-- Title -->
                     <div>
-                        <InputLabel value="Título" />
-                        <TextInput v-model="itemForm.title" type="text" class="mt-1 block w-full" />
+                        <InputLabel value="Título / Etiqueta" />
+                        <TextInput v-model="itemForm.title" type="text" class="mt-1 block w-full" placeholder="Ej: Inicio" />
                         <InputError :message="itemForm.errors.title" class="mt-2" />
                     </div>
+
+                    <!-- Link Type -->
                     <div>
-                        <InputLabel value="URL (Opcional si usas página)" />
-                        <div class="text-xs text-gray-500 mb-1">Para enlaces externos o personalizados.</div>
-                        <TextInput v-model="itemForm.url" type="text" class="mt-1 block w-full" placeholder="https://..." />
+                        <InputLabel value="Tipo de Enlace" />
+                        <div class="flex gap-4 mt-2">
+                            <label class="flex items-center">
+                                <input type="radio" v-model="itemForm.link_type" value="external" class="text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded-full">
+                                <span class="ml-2 text-sm text-gray-600">Enlace Externo / URL</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" v-model="itemForm.link_type" value="page" class="text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded-full">
+                                <span class="ml-2 text-sm text-gray-600">Página del Sitio</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Page Selector -->
+                    <div v-if="itemForm.link_type === 'page'">
+                        <InputLabel value="Seleccionar Página" />
+                        <select v-model="itemForm.page_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option :value="null" disabled>-- Seleccione una página --</option>
+                            <option v-for="page in pages" :key="page.id" :value="page.id">
+                                {{ page.title }} (/{{ page.slug }})
+                            </option>
+                        </select>
+                        <InputError :message="itemForm.errors.page_id" class="mt-2" />
+                    </div>
+
+                    <!-- URL Input (Conditional) -->
+                    <div v-if="itemForm.link_type === 'external'">
+                        <InputLabel value="URL Completa" />
+                        <TextInput v-model="itemForm.url" type="text" class="mt-1 block w-full" placeholder="https://ejemplo.com/enlace" />
                         <InputError :message="itemForm.errors.url" class="mt-2" />
                     </div>
+                    
+                    <!-- If page is selected, maybe show the auto-generated slug as readonly URL or hidden? -->
+                    <div v-if="itemForm.link_type === 'page' && itemForm.url">
+                        <InputLabel value="URL Generada (Slug)" />
+                        <TextInput v-model="itemForm.url" type="text" class="mt-1 block w-full bg-gray-100 text-gray-500" readonly />
+                         <div class="text-xs text-gray-400 mt-1">Este enlace se genera automáticamente desde la página seleccionada.</div>
+                    </div>
+
+                    <!-- Target -->
                      <div>
-                        <InputLabel value="Target" />
+                        <InputLabel value="Abrir en" />
                         <select v-model="itemForm.target" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                            <option value="_self">Misma Ventana</option>
-                            <option value="_blank">Nueva Pestaña</option>
+                            <option value="_self">Misma Pestaña</option>
+                            <option value="_blank">Nueva Pestaña (Enlace Externo)</option>
                         </select>
                          <InputError :message="itemForm.errors.target" class="mt-2" />
                     </div>
-                    <!-- Future: Page Selector logic matching Admin/Pages -->
+
                 </div>
                 <div class="mt-6 flex justify-end">
                     <SecondaryButton @click="managingItem = false">Cancelar</SecondaryButton>
