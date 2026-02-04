@@ -7,8 +7,7 @@ import TextInput from '@/Components/TextInput.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import ToastNotification from '@/Components/UI/ToastNotification.vue';
-import { QuillEditor } from '@vueup/vue-quill';
-import '@vueup/vue-quill/dist/vue-quill.snow.css';
+import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 const props = defineProps({
     settings: Object,
@@ -88,7 +87,7 @@ const bgTypes = [
                                     <p class="text-sm text-gray-500 mb-2">Diseñe el encabezado aquí. Puede agregar logos usando URLs de la sección Multimedia.</p>
                                     
                                     <div v-if="!showCode.header" class="bg-white">
-                                        <QuillEditor theme="snow" v-model:content="form.header_content" contentType="html" toolbar="full" style="height: 300px;" />
+                                        <RichTextEditor v-model="form.header_content" />
                                     </div>
                                     <div v-else>
                                         <textarea v-model="form.header_content" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm h-[342px]" placeholder="<header>...</header>"></textarea>
@@ -109,7 +108,7 @@ const bgTypes = [
                                     <p class="text-sm text-gray-500 mb-2">Diseñe el pie de página aquí.</p>
                                     
                                     <div v-if="!showCode.footer" class="bg-white">
-                                        <QuillEditor theme="snow" v-model:content="form.footer_content" contentType="html" toolbar="full" style="height: 300px;" />
+                                        <RichTextEditor v-model="form.footer_content" />
                                     </div>
                                     <div v-else>
                                         <textarea v-model="form.footer_content" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm h-[342px]" placeholder="<footer>...</footer>"></textarea>
