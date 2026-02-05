@@ -33,7 +33,7 @@ class PageController extends Controller
 
         // Auto-generate slug from title if not present, just for basic fallback
         $validated['slug'] = Str::slug($validated['title']);
-        $validated['content'] = ''; // Empty content for legacy column
+        $validated['content'] = null; // Empty content for legacy column
 
         $page = Page::create($validated);
 
@@ -58,6 +58,7 @@ class PageController extends Controller
                 'elements.*.content' => 'nullable', // json or string
                 'elements.*.order' => 'integer',
                 'elements.*.id' => 'nullable|integer',
+                'elements.*.settings' => 'nullable|array',
             ]);
 
             // Sync elements
@@ -79,6 +80,7 @@ class PageController extends Controller
                             'type' => $elementData['type'],
                             'content' => $elementData['content'],
                             'order' => $elementData['order'],
+                            'settings' => $elementData['settings'] ?? null,
                         ]);
                     }
                 } else {
@@ -86,6 +88,7 @@ class PageController extends Controller
                         'type' => $elementData['type'],
                         'content' => $elementData['content'],
                         'order' => $elementData['order'],
+                        'settings' => $elementData['settings'] ?? null,
                     ]);
                 }
             }

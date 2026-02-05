@@ -40,7 +40,7 @@ const backgroundStyle = computed(() => {
 
         <!-- Custom Header Content -->
         <!-- This is independent of the menu as requested -->
-        <header v-if="settings.header_content" class="site-header" v-html="settings.header_content"></header>
+        <header v-if="settings.header_content" class="site-header flex justify-center w-full" v-html="settings.header_content"></header>
 
         <!-- Main Navigation (Independent) -->
         <!-- You might want to style this container or let the user style it if they want full control, 
@@ -48,7 +48,7 @@ const backgroundStyle = computed(() => {
         <nav v-if="mainMenu && mainMenu.items && mainMenu.items.length > 0" class="site-navigation bg-white/80 backdrop-blur-sm border-b border-gray-100 shadow-sm sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
-                    <div class="flex">
+                    <div class="flex w-full justify-center">
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <template v-for="item in mainMenu.items" :key="item.id">
@@ -81,7 +81,7 @@ const backgroundStyle = computed(() => {
         </main>
 
         <!-- Custom Footer Content -->
-        <footer v-if="settings.footer_content" class="site-footer" v-html="settings.footer_content"></footer>
+        <footer v-if="settings.footer_content" class="site-footer flex justify-center w-full" v-html="settings.footer_content"></footer>
         
         <!-- Fallback Footer if no content -->
         <footer v-else class="bg-gray-800 text-white py-8 text-center">

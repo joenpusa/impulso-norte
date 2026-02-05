@@ -35,7 +35,12 @@ const submitBasicInfo = () => {
 
 // --- Elements Management ---
 const isSavingElements = ref(false);
-const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.elements)) : []);
+const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.elements)).map(el => {
+    if (el.type === 'title' && !el.settings) {
+        el.settings = { style: 'primary' };
+    }
+    return el;
+}) : []);
 
 const addElement = (type) => {
     let content = '';
@@ -48,6 +53,7 @@ const addElement = (type) => {
         type: type,
         content: content,
         order: elements.value.length,
+        settings: type === 'title' ? { style: 'primary' } : null,
     });
 };
 
@@ -198,8 +204,18 @@ const saveElements = () => {
                                 <div class="pr-24">
                                     <span class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2 block">{{ element.type }}</span>
                                     
-                                    <!-- Type: Title -->
                                     <div v-if="element.type === 'title'">
+                                        <div class="mb-2 flex items-center space-x-4">
+                                            <label class="text-xs text-gray-500 font-bold">Estilo:</label>
+                                            <div class="flex items-center">
+                                                <input type="radio" :name="`style-${index}`" value="primary" v-model="element.settings.style" class="mr-1 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                                <span class="text-sm text-gray-700">Primario (Centrado)</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="radio" :name="`style-${index}`" value="secondary" v-model="element.settings.style" class="mr-1 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                                <span class="text-sm text-gray-700">Secundario (Izquierda)</span>
+                                            </div>
+                                        </div>
                                         <TextInput v-model="element.content" type="text" class="w-full text-lg font-semibold" placeholder="Escriba el título de la sección..." />
                                     </div>
 
