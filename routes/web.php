@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
 
     // Admin Resource Routes (Restored)
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::post('menus/{menu}/reorder', [\App\Http\Controllers\Admin\MenuController::class, 'reorder'])->name('menus.reorder');
         Route::resource('menus', \App\Http\Controllers\Admin\MenuController::class);
         Route::resource('menu-items', \App\Http\Controllers\Admin\MenuItemController::class);
         Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);

@@ -122,6 +122,45 @@ const deleteItem = () => {
         },
     });
 };
+
+// Local State for Items (to allow reordering without mutating props)
+const localItems = ref([...props.menu.items]);
+
+// Sync with props if they change (e.g. after add/edit/delete)
+watch(() => props.menu.items, (newItems) => {
+    localItems.value = [...newItems];
+}, { deep: true });
+
+// Reordering Logic
+const moveUp = (index, list) => {
+    if (index > 0) {
+        const item = list[index];
+        list.splice(index, 1);
+        list.splice(index - 1, 0, item);
+        saveOrder();
+    }
+};
+
+const moveDown = (index, list) => {
+    if (index < list.length - 1) {
+        const item = list[index];
+        list.splice(index, 1);
+        list.splice(index + 1, 0, item);
+        saveOrder();
+    }
+};
+
+const saveOrder = () => {
+    // Send the updated local structure
+    axios.post(route('admin.menus.reorder', props.menu.id), {
+        items: localItems.value
+    }).then(() => {
+        // Success
+    }).catch(error => {
+        console.error('Error saving order', error);
+        alert('Error al guardar el orden.');
+    });
+};
 </script>
 
 <template>
@@ -150,44 +189,64 @@ const deleteItem = () => {
 
                         <!-- Nested List -->
                         <div class="space-y-4">
-                            <div v-for="item in menu.items" :key="item.id" class="border rounded-lg p-4 bg-gray-50">
-                                <div class="flex justify-between items-center">
-                                    <div class="font-medium text-gray-900 flex items-center gap-2">
-                                        {{ item.title }}
-                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded" v-if="item.page_id">
-                                            Página
-                                        </span>
-                                        <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded" v-else>
-                                            Enlace: {{ item.url }}
-                                        </span>
-                                        <span class="text-xs text-gray-400" v-if="item.target === '_blank'">
-                                            (Nueva Pestaña)
-                                        </span>
-                                    </div>
-                                    <div class="flex gap-2 text-sm">
-                                        <button @click="openCreateItemModal(item.id)" class="text-green-600 hover:underline">+ Sub-ítem</button>
-                                        <button @click="openEditItemModal(item)" class="text-blue-600 hover:underline">Editar</button>
-                                        <button @click="confirmingItemDeletion = true; itemToDelete = item.id" class="text-red-600 hover:underline">Eliminar</button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Children -->
-                                <div v-if="item.children && item.children.length > 0" class="mt-3 pl-6 border-l-2 border-gray-200 space-y-2">
-                                    <div v-for="child in item.children" :key="child.id" class="bg-white border rounded p-3 flex justify-between items-center">
-                                        <div class="text-sm text-gray-700 font-medium">
-                                             {{ child.title }}
-                                             <span class="text-xs text-gray-500 font-normal ml-2">
-                                                - {{ child.page_id ? 'Página' : 'Enlace' }}
+                            <div v-for="(item, index) in localItems" :key="item.id" class="border rounded-lg p-4 bg-gray-50">
+                                    <div class="flex justify-between items-center">
+                                        <div class="font-medium text-gray-900 flex items-center gap-2">
+                                            {{ item.title }}
+                                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded" v-if="item.page_id">
+                                                Página
+                                            </span>
+                                            <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded" v-else>
+                                                Enlace: {{ item.url }}
+                                            </span>
+                                            <span class="text-xs text-gray-400" v-if="item.target === '_blank'">
+                                                (Nueva Pestaña)
                                             </span>
                                         </div>
-                                        <div class="flex gap-2 text-xs">
-                                            <button @click="openEditItemModal(child)" class="text-blue-600 hover:underline">Editar</button>
-                                            <button @click="confirmingItemDeletion = true; itemToDelete = child.id" class="text-red-600 hover:underline">Eliminar</button>
+                                        <div class="flex gap-2 text-sm items-center">
+                                            <!-- Reordering Controls -->
+                                            <div class="flex gap-1 mr-4 border-r pr-4">
+                                                <button @click="moveUp(index, localItems)" class="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700" title="Subir">
+                                                    ⬆️
+                                                </button>
+                                                <button @click="moveDown(index, localItems)" class="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700" title="Bajar">
+                                                    ⬇️
+                                                </button>
+                                            </div>
+
+                                            <button @click="openCreateItemModal(item.id)" class="text-green-600 hover:underline">+ Sub-ítem</button>
+                                            <button @click="openEditItemModal(item)" class="text-blue-600 hover:underline">Editar</button>
+                                            <button @click="confirmingItemDeletion = true; itemToDelete = item.id" class="text-red-600 hover:underline">Eliminar</button>
                                         </div>
                                     </div>
-                                </div>
+                                    
+                                    <!-- Children -->
+                                    <div v-if="item.children && item.children.length > 0" class="mt-3 pl-6 border-l-2 border-gray-200 space-y-2">
+                                        <div v-for="(child, childIndex) in item.children" :key="child.id" class="bg-white border rounded p-3 flex justify-between items-center">
+                                            <div class="text-sm text-gray-700 font-medium">
+                                                 {{ child.title }}
+                                                 <span class="text-xs text-gray-500 font-normal ml-2">
+                                                    - {{ child.page_id ? 'Página' : 'Enlace' }}
+                                                </span>
+                                            </div>
+                                            <div class="flex gap-2 text-xs items-center">
+                                                <!-- Reordering Controls for Children -->
+                                                <div class="flex gap-1 mr-2 border-r pr-2">
+                                                    <button @click="moveUp(childIndex, item.children)" class="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700" title="Subir">
+                                                        ⬆️
+                                                    </button>
+                                                    <button @click="moveDown(childIndex, item.children)" class="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700" title="Bajar">
+                                                        ⬇️
+                                                    </button>
+                                                </div>
+
+                                                <button @click="openEditItemModal(child)" class="text-blue-600 hover:underline">Editar</button>
+                                                <button @click="confirmingItemDeletion = true; itemToDelete = child.id" class="text-red-600 hover:underline">Eliminar</button>
+                                            </div>
+                                        </div>
+                                    </div>
                             </div>
-                            <div v-if="menu.items.length === 0" class="text-center py-8 text-gray-500">
+                            <div v-if="localItems.length === 0" class="text-center py-8 text-gray-500">
                                 No hay ítems en este menú.
                             </div>
                         </div>

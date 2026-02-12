@@ -51,7 +51,14 @@ class MenuController extends Controller
     public function show(Menu $menu)
     {
         // This is important for managing items!
-        $menu->load('items.children');
+        $menu->load([
+            'items' => function ($query) {
+                $query->orderBy('order', 'asc');
+            },
+            'items.children' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+        ]);
         $pages = \App\Models\Page::select('id', 'title', 'slug')->get(); // Fetch all pages (published or not? maybe all so admin can link drafts)
         return Inertia::render('Admin/Menus/Show', compact('menu', 'pages'));
     }
@@ -87,5 +94,35 @@ class MenuController extends Controller
     {
         $menu->delete();
         return redirect()->route('admin.menus.index')->with('success', 'Menu deleted successfully.');
+    }
+
+    public function reorder(Request $request, Menu $menu)
+    {
+        $data = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:menu_items,id',
+            'items.*.children' => 'nullable|array',
+        ]);
+
+        $this->updateOrder($data['items']);
+
+        return response()->json(['success' => true]);
+    }
+
+    private function updateOrder(array $items, $parentId = null)
+    {
+        foreach ($items as $index => $itemData) {
+            $item = \App\Models\MenuItem::find($itemData['id']);
+            if ($item) {
+                $item->update([
+                    'order' => $index,
+                    'parent_id' => $parentId,
+                ]);
+
+                if (isset($itemData['children']) && !empty($itemData['children'])) {
+                    $this->updateOrder($itemData['children'], $item->id);
+                }
+            }
+        }
     }
 }
