@@ -9,7 +9,13 @@ use Inertia\Inertia;
 Route::get('/', [\App\Http\Controllers\PublicPageController::class, 'index'])->name('home');
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('Dashboard', [
+        'counts' => [
+            'media' => \App\Models\MediaFile::count(),
+            'pages' => \App\Models\Page::count(),
+            'registros' => \App\Models\RegistroFormulario::count(),
+        ]
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
