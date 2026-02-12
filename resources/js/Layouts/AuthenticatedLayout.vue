@@ -8,7 +8,7 @@ import { Link } from '@inertiajs/vue3';
 const showingNavigationDropdown = ref(false);
 
 const navItems = [
-    { name: 'Dashboard', route: 'dashboard', active: 'dashboard' },
+    { name: 'Inicio', route: 'dashboard', active: 'dashboard' },
     { name: 'Multimedia', route: 'admin.media.index', active: 'admin.media.*' },
     { name: 'Páginas', route: 'admin.pages.index', active: 'admin.pages.*' },
     { name: 'Menús', route: 'admin.menus.index', active: 'admin.menus.*' },
@@ -75,8 +75,8 @@ const navItems = [
                         </template>
 
                         <template #content>
-                            <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
-                            <DropdownLink :href="route('logout')" method="post" as="button"> Log Out </DropdownLink>
+                            <DropdownLink :href="route('profile.edit')"> Perfil </DropdownLink>
+                            <DropdownLink :href="route('logout')" method="post" as="button"> Cerrar Sesión </DropdownLink>
                         </template>
                     </Dropdown>
                 </div>
@@ -118,10 +118,10 @@ const navItems = [
                     <div class="font-medium text-sm text-gray-500 mb-2">{{ $page.props.auth.user.email }}</div>
                     <div class="mt-3 space-y-1">
                         <Link :href="route('profile.edit')" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md">
-                            Profile
+                            Perfil
                         </Link>
                         <Link :href="route('logout')" method="post" as="button" class="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md">
-                            Log Out
+                            Cerrar Sesión
                         </Link>
                     </div>
                 </div>
