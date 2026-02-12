@@ -12,6 +12,7 @@ const navItems = [
     { name: 'Multimedia', route: 'admin.media.index', active: 'admin.media.*' },
     { name: 'Páginas', route: 'admin.pages.index', active: 'admin.pages.*' },
     { name: 'Menús', route: 'admin.menus.index', active: 'admin.menus.*' },
+    { name: 'Registros Convocatoria', route: 'admin.registros.index', active: 'admin.registros.*' },
     { name: 'Ajustes', route: 'admin.settings.index', active: 'admin.settings.*' },
 ];
 </script>

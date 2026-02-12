@@ -24,10 +24,20 @@ Route::middleware('auth')->group(function () {
         Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
         Route::resource('settings', \App\Http\Controllers\Admin\SettingController::class)->only(['index', 'store']);
         Route::resource('media', \App\Http\Controllers\Admin\MediaFileController::class);
+
+        // Registros Formulario Routes
+        Route::get('registros', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'index'])->name('registros.index');
+        Route::delete('registros/{registro}', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'destroy'])->name('registros.destroy');
+        Route::get('registros/settings', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'settings'])->name('registros.settings');
+        Route::post('registros/settings', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'updateSettings'])->name('registros.settings.update');
     });
 });
 
 require __DIR__ . '/auth.php';
+
+// Public Form Route
+Route::get('/formulario-registro', [\App\Http\Controllers\PublicFormController::class, 'index'])->name('form.index');
+Route::post('/formulario-registro', [\App\Http\Controllers\PublicFormController::class, 'store'])->name('form.store');
 
 // Dynamic Public Page Route
 Route::get('/{slug}', [\App\Http\Controllers\PublicPageController::class, 'show'])->name('pages.show');
