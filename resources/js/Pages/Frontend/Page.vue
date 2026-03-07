@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Carousel from '@/Components/Carousel.vue';
+import Gallery from '@/Components/Gallery.vue';
 
 const props = defineProps({
     page: Object,
@@ -44,6 +45,11 @@ const props = defineProps({
                         <!-- Debug: Uncomment if needed -->
                         <!-- <pre>{{ element.content }}</pre> -->
                         <Carousel :images="element.content" />
+                    </div>
+
+                    <!-- Gallery Element -->
+                    <div v-if="element.type === 'gallery'">
+                        <Gallery :images="element.content" />
                     </div>
 
                 </div>
