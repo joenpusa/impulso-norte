@@ -39,6 +39,7 @@ const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.
     if (el.type === 'title' && !el.settings) {
         el.settings = { style: 'primary' };
     }
+    el.showCode = false;
     return el;
 }) : []);
 
@@ -54,6 +55,7 @@ const addElement = (type) => {
         content: content,
         order: elements.value.length,
         settings: type === 'title' ? { style: 'primary' } : null,
+        showCode: false,
     });
 };
 
@@ -106,8 +108,14 @@ const saveElements = () => {
     updateOrder();
     isSavingElements.value = true;
 
+    const elementsToSave = elements.value.map(el => {
+        const copy = { ...el };
+        delete copy.showCode;
+        return copy;
+    });
+
     router.put(route('admin.pages.update', props.page.id), {
-        elements: elements.value
+        elements: elementsToSave
     }, {
         preserveScroll: true,
         onFinish: () => {
@@ -221,7 +229,18 @@ const saveElements = () => {
 
                                     <!-- Type: Content -->
                                     <div v-if="element.type === 'content'">
-                                        <RichTextEditor v-model="element.content" placeholder="Escriba el contenido..." />
+                                        <div class="flex justify-end items-center mb-2">
+                                            <button type="button" @click="element.showCode = !element.showCode" class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                                {{ element.showCode ? 'Ver Editor Visual' : 'Ver Código HTML' }}
+                                            </button>
+                                        </div>
+                                        <div v-if="!element.showCode" class="bg-white">
+                                            <RichTextEditor v-model="element.content" placeholder="Escriba el contenido..." />
+                                        </div>
+                                        <div v-else>
+                                            <textarea v-model="element.content" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm font-mono text-sm h-[342px]" placeholder="<p>...</p>"></textarea>
+                                            <p class="text-xs text-orange-500 mt-1">⚠ Editando código fuente HTML directamente.</p>
+                                        </div>
                                     </div>
 
                                     <!-- Type: Carousel -->
