@@ -45,7 +45,7 @@ const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.
 
 const addElement = (type) => {
     let content = '';
-    if (type === 'carousel' || type === 'gallery') {
+    if (type === 'carousel' || type === 'gallery' || type === 'timeline') {
         content = [];
     }
     
@@ -100,6 +100,15 @@ const addImageToCarousel = (element) => {
 };
 const removeImageFromCarousel = (element, imgIndex) => {
     element.content.splice(imgIndex, 1);
+};
+
+// Timeline Logic
+const addStepToTimeline = (element) => {
+    if (!Array.isArray(element.content)) element.content = [];
+    element.content.push({ url: '', text: '' });
+};
+const removeStepFromTimeline = (element, index) => {
+    element.content.splice(index, 1);
 };
 
 const saveElements = () => {
@@ -198,6 +207,9 @@ const saveElements = () => {
                                 <SecondaryButton @click="addElement('gallery')" class="text-xs">
                                     + Galería
                                 </SecondaryButton>
+                                <SecondaryButton @click="addElement('timeline')" class="text-xs">
+                                    + Ruta de Proceso
+                                </SecondaryButton>
                             </div>
                         </div>
 
@@ -258,6 +270,39 @@ const saveElements = () => {
                                             </button>
                                         </div>
                                         <p class="text-xs text-gray-500">Haga clic en "+" para agregar URL de imagen.</p>
+                                    </div>
+                                    
+                                    <!-- Type: Timeline -->
+                                    <div v-if="element.type === 'timeline'">
+                                        <div class="flex flex-col gap-4 mb-4">
+                                            <div v-for="(step, stepIdx) in element.content" :key="stepIdx" class="flex flex-col sm:flex-row gap-4 items-center bg-white p-4 border rounded-lg shadow-sm">
+                                                <!-- Image Preview -->
+                                                <div class="relative w-24 h-24 sm:w-20 sm:h-20 border-2 rounded shrink-0 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                                    <img v-if="step.url" :src="step.url" class="w-full h-full object-cover" />
+                                                    <span v-else class="text-[10px] text-gray-400 font-bold uppercase text-center px-1">Img {{ stepIdx + 1 }}</span>
+                                                </div>
+                                                
+                                                <!-- Inputs -->
+                                                <div class="grow space-y-3 w-full">
+                                                    <div>
+                                                        <InputLabel :for="`url-${index}-${stepIdx}`" value="URL de la Imagen" class="text-xs text-gray-500 mb-1" />
+                                                        <TextInput :id="`url-${index}-${stepIdx}`" v-model="step.url" type="text" class="w-full text-sm block" placeholder="https://..." />
+                                                    </div>
+                                                    <div>
+                                                        <InputLabel :for="`text-${index}-${stepIdx}`" value="Texto o Título del Paso" class="text-xs text-gray-500 mb-1" />
+                                                        <TextInput :id="`text-${index}-${stepIdx}`" v-model="step.text" type="text" class="w-full text-sm font-semibold block" placeholder="Paso descriptivo" />
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Actions -->
+                                                <button @click="removeStepFromTimeline(element, stepIdx)" class="p-2 mt-4 sm:mt-0 text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-600 rounded shrink-0 transition-colors" title="Eliminar paso">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button @click="addStepToTimeline(element)" class="w-full py-3 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-indigo-500 hover:text-indigo-600 font-medium transition-colors bg-white">
+                                            + Agregar Nuevo Paso a la Ruta
+                                        </button>
                                     </div>
                                 </div>
                             </div>

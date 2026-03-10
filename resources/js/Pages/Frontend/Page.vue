@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Carousel from '@/Components/Carousel.vue';
 import Gallery from '@/Components/Gallery.vue';
+import Timeline from '@/Components/Timeline.vue';
 
 const props = defineProps({
     page: Object,
@@ -25,10 +26,10 @@ const props = defineProps({
                     
                     <!-- Title Element -->
                     <div v-if="element.type === 'title'">
-                        <h1 v-if="element.settings?.style === 'primary'" class="titulo-primary mb-6 text-gray-900">
+                        <h1 v-if="element.settings?.style === 'primary'" class="titulo-primary mb-6">
                             {{ element.content }}
                         </h1>
-                        <h3 v-else-if="element.settings?.style === 'secondary'" class="titulo-secondary mb-6 text-gray-800">
+                        <h3 v-else-if="element.settings?.style === 'secondary'" class="titulo-secondary mb-6">
                             {{ element.content }}
                         </h3>
                         <h2 v-else class="text-3xl font-bold text-gray-800 mb-6">
@@ -50,6 +51,11 @@ const props = defineProps({
                     <!-- Gallery Element -->
                     <div v-if="element.type === 'gallery'">
                         <Gallery :images="element.content" />
+                    </div>
+
+                    <!-- Timeline Element -->
+                    <div v-if="element.type === 'timeline'">
+                        <Timeline :steps="element.content" />
                     </div>
 
                 </div>
