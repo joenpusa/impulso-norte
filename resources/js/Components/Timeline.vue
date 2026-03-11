@@ -32,7 +32,7 @@
                             </div>
                         </div>
                         
-                        <!-- Text Content -->
+                        <!-- Text Content --> 
                         <div class="text-center px-2">
                             <h3 v-if="step.text" class="text-lg md:text-xl font-bold text-gray-800 leading-tight">
                                 {{ step.text }}
