@@ -32,7 +32,7 @@ const props = defineProps({
                         <h3 v-else-if="element.settings?.style === 'secondary'" class="titulo-secondary mb-6">
                             {{ element.content }}
                         </h3>
-                        <h2 v-else class="text-3xl font-bold text-gray-800 mb-6">
+                        <h2 v-else class="text-3xl font-bold font-['Montserrat',_sans-serif] text-gray-800 mb-6">
                             {{ element.content }}
                         </h2>
                     </div>

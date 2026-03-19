@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Head } from '@inertiajs/vue3';
 
@@ -7,6 +7,139 @@ const page = usePage();
 const currentUrl = computed(() => page.url);
 
 const isMobileMenuOpen = ref(false);
+
+const canvasRef = ref(null);
+
+onMounted(() => {
+    const canvas = canvasRef.value;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    let particles = [];
+    const particleCount = Math.floor((width * height) / 10000); // Amount of nodes
+    const mouse = { x: -1000, y: -1000, radius: 180 };
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 1.5; 
+            this.vy = (Math.random() - 0.5) * 1.5;
+            this.radius = Math.random() * 2 + 1;
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < 0 || this.x > width) this.vx *= -1;
+            if (this.y < 0 || this.y > height) this.vy *= -1;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(29, 78, 216, 0.5)'; 
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    let isMouseMoving = false;
+    let mouseTimeout;
+
+    const connect = () => {
+        for (let a = 0; a < particles.length; a++) {
+            for (let b = a; b < particles.length; b++) {
+                const dx = particles[a].x - particles[b].x;
+                const dy = particles[a].y - particles[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 110) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(29, 78, 216, ${0.25 - distance / 440})`;
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
+                }
+            }
+            const dxMouse = particles[a].x - mouse.x;
+            const dyMouse = particles[a].y - mouse.y;
+            const distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+            
+            if (isMouseMoving && distanceMouse < mouse.radius) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(29, 78, 216, ${0.5 - distanceMouse / (mouse.radius * 2)})`; 
+                ctx.lineWidth = 1.5;
+                ctx.moveTo(particles[a].x, particles[a].y);
+                ctx.lineTo(mouse.x, mouse.y);
+                ctx.stroke();
+                // Pull particles to mouse
+                particles[a].x -= dxMouse * 0.025;
+                particles[a].y -= dyMouse * 0.025;
+            }
+        }
+    };
+
+    let animationFrameId;
+    const animate = () => {
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+        }
+        connect();
+        animationFrameId = requestAnimationFrame(animate);
+    };
+
+    const handleResize = () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    };
+
+    const handleMouseMove = (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        
+        isMouseMoving = true;
+        clearTimeout(mouseTimeout);
+        mouseTimeout = setTimeout(() => {
+            isMouseMoving = false;
+        }, 150);
+    };
+    
+    const handleMouseOut = () => {
+        mouse.x = -1000;
+        mouse.y = -1000;
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseout', handleMouseOut);
+    
+    canvas._cleanup = () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseout', handleMouseOut);
+        cancelAnimationFrame(animationFrameId);
+    };
+
+    animate();
+});
+
+onUnmounted(() => {
+    if (canvasRef.value && canvasRef.value._cleanup) {
+        canvasRef.value._cleanup();
+    }
+});
 
 const props = defineProps({
     settings: {
@@ -37,7 +170,11 @@ const backgroundStyle = computed(() => {
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col font-sans text-gray-900 antialiased" :style="backgroundStyle">
+    <div class="min-h-screen flex flex-col font-sans text-gray-900 antialiased relative" :style="backgroundStyle">
+        <!-- Interactive Nodes Graph Overlay -->
+        <canvas ref="canvasRef" class="pointer-events-none fixed inset-0 z-[100]"></canvas>
+
+        <div class="relative z-10 flex flex-col min-h-screen">
         <!-- Optional: Custom CSS injection if really needed, though risky -->
         <component is="style" v-if="settings.custom_css">
             {{ settings.custom_css }}
@@ -61,10 +198,10 @@ const backgroundStyle = computed(() => {
                                     v-if="item.page_id && item.page" 
                                     :href="route('pages.show', item.page.slug)" 
                                     :class="[
-                                        'inline-flex items-center px-1 pt-1 border-b-2 text-base font-medium leading-5 transition duration-150 ease-in-out focus:outline-none',
+                                        'menu-item-custom inline-flex items-center px-3 py-2 mx-1 border-b-2 font-medium leading-5 focus:outline-none',
                                         currentUrl === '/pages/' + item.page.slug
-                                            ? 'border-blue-500 text-blue-600 focus:border-blue-700'
-                                            : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300 focus:text-gray-900 focus:border-gray-300'
+                                            ? 'active-nav-item'
+                                            : 'border-transparent text-gray-600 focus:text-gray-900 focus:border-gray-300'
                                     ]"
                                 >
                                     {{ item.title }}
@@ -74,10 +211,10 @@ const backgroundStyle = computed(() => {
                                     :href="item.url || '#'" 
                                     :target="item.target || '_self'"
                                     :class="[
-                                        'inline-flex items-center px-1 pt-1 border-b-2 text-base font-medium leading-5 transition duration-150 ease-in-out focus:outline-none',
+                                        'menu-item-custom inline-flex items-center px-3 py-2 mx-1 border-b-2 font-medium leading-5 focus:outline-none',
                                         currentUrl === item.url
-                                            ? 'border-blue-500 text-blue-600 focus:border-blue-700'
-                                            : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300 focus:text-gray-900 focus:border-gray-300'
+                                            ? 'active-nav-item'
+                                            : 'border-transparent text-gray-600 focus:text-gray-900 focus:border-gray-300'
                                     ]"
                                 >
                                     {{ item.title }}
@@ -119,10 +256,10 @@ const backgroundStyle = computed(() => {
                                 v-if="item.page_id && item.page" 
                                 :href="route('pages.show', item.page.slug)" 
                                 :class="[
-                                    'block pl-3 pr-4 py-2 border-l-4 text-lg font-medium transition duration-150 ease-in-out focus:outline-none',
+                                    'mobile-menu-item-custom block pl-3 pr-4 py-3 border-l-4 font-medium focus:outline-none',
                                     currentUrl === '/pages/' + item.page.slug
-                                        ? 'border-blue-500 text-blue-700 bg-blue-50 focus:text-blue-800 focus:bg-blue-100 focus:border-blue-700'
-                                        : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                                        ? 'active-nav-item'
+                                        : 'border-transparent text-gray-600 focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
                                 ]"
                                 @click="isMobileMenuOpen = false"
                             >
@@ -133,10 +270,10 @@ const backgroundStyle = computed(() => {
                                 :href="item.url || '#'" 
                                 :target="item.target || '_self'"
                                 :class="[
-                                    'block pl-3 pr-4 py-2 border-l-4 text-lg font-medium transition duration-150 ease-in-out focus:outline-none',
+                                    'mobile-menu-item-custom block pl-3 pr-4 py-3 border-l-4 font-medium focus:outline-none',
                                     currentUrl === item.url
-                                        ? 'border-blue-500 text-blue-700 bg-blue-50 focus:text-blue-800 focus:bg-blue-100 focus:border-blue-700'
-                                        : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                                        ? 'active-nav-item'
+                                        : 'border-transparent text-gray-600 focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
                                 ]"
                                 @click="isMobileMenuOpen = false"
                             >
@@ -160,13 +297,52 @@ const backgroundStyle = computed(() => {
         <footer v-else class="bg-gray-800 text-white py-8 text-center">
             <p>&copy; {{ new Date().getFullYear() }} {{ settings.site_title || 'Impulso Norte' }}. Todos los derechos reservados.</p>
         </footer>
+        </div>
     </div>
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 /* Basic resets for injected content */
 .site-header :deep(img), .site-footer :deep(img) {
     max-width: 100%;
     height: auto;
+}
+
+/* Custom Menu Styles */
+.menu-item-custom {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 18pt !important;
+    transition: all 0.3s ease-in-out;
+}
+
+.menu-item-custom:hover {
+    transform: translateY(-3px) scale(1.02);
+    color: #2563eb !important; /* blue-600 */
+    background-color: #f3f4f6 !important; /* gray-100 */
+    border-radius: 0.375rem 0.375rem 0 0; /* rounded-t-md */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-bottom-color: #93c5fd !important; /* blue-300 */
+}
+
+.mobile-menu-item-custom {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 18pt !important;
+    transition: all 0.3s ease-in-out;
+}
+
+.mobile-menu-item-custom:hover {
+    transform: translateX(8px);
+    color: #2563eb !important;
+    background-color: #f3f4f6 !important;
+    border-left-color: #93c5fd !important;
+}
+
+.active-nav-item {
+    font-weight: 700 !important;
+    color: #1e40af !important; /* blue-800 */
+    border-color: #2563eb !important; /* blue-600 desktop border-bottom, mobile border-left */
+    background-color: #eff6ff !important; /* blue-50 */
 }
 </style>
