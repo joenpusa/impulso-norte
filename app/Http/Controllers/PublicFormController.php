@@ -91,7 +91,6 @@ class PublicFormController extends Controller
             'telefono' => 'required|string',
             'correo' => 'required|email',
             'clasificacion_sisben' => 'required|string',
-            'sisben_path' => 'required|file|mimes:pdf|max:2048',
             'tiene_iniciativa' => 'required|boolean',
             'nombre_iniciativa' => 'nullable|string|required_if:tiene_iniciativa,true',
         ]);
@@ -105,14 +104,7 @@ class PublicFormController extends Controller
             'public'
         );
 
-        $sisbenPath = $request->file('sisben_path')->storePubliclyAs(
-            "registros/{$folderName}",
-            'sisben.pdf',
-            'public'
-        );
-
         $validated['documento_identidad_path'] = $docPath;
-        $validated['sisben_path'] = $sisbenPath;
 
         RegistroFormulario::create($validated);
 

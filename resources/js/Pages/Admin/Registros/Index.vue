@@ -57,7 +57,7 @@ const getFileUrl = (path) => {
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Municipio</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Archivos</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Archivo</th>
                                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
@@ -78,9 +78,8 @@ const getFileUrl = (path) => {
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ formatDate(registro.created_at) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex space-x-2">
-                                            <a v-if="registro.documento_identidad_path" :href="getFileUrl(registro.documento_identidad_path)" target="_blank" class="text-indigo-600 hover:text-indigo-900">Doc</a>
-                                            <a v-if="registro.sisben_path" :href="getFileUrl(registro.sisben_path)" target="_blank" class="text-indigo-600 hover:text-indigo-900">Sisben</a>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <a v-if="registro.documento_identidad_path" :href="getFileUrl(registro.documento_identidad_path)" target="_blank" class="text-indigo-600 hover:text-indigo-900">Ver Anexo</a>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button @click="deleteRegistro(registro.id)" class="text-red-600 hover:text-red-900">Eliminar</button>

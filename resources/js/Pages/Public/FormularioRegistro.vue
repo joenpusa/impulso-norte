@@ -24,18 +24,12 @@ const form = useForm({
     telefono: '',
     correo: '',
     clasificacion_sisben: '',
-    sisben_path: null,
     tiene_iniciativa: false,
     nombre_iniciativa: '',
 });
 
 const municipios = [
-    'Abrego', 'Arboledas', 'Bochalema', 'Bucarasica', 'Cachirá', 'Cácota', 'Chinácota', 
-    'Chitagá', 'Convención', 'Cúcuta', 'Cucutilla', 'Durania', 'El Carmen', 'El Tarra', 
-    'El Zulia', 'Gramalote', 'Hacarí', 'Herrán', 'La Esperanza', 'La Playa', 'Labateca', 
-    'Los Patios', 'Lourdes', 'Mutiscua', 'Ocaña', 'Pamplona', 'Pamplonita', 'Puerto Santander', 
-    'Ragonvalia', 'Salazar', 'San Calixto', 'San Cayetano', 'Santiago', 'Sardinata', 'Silos', 
-    'Teorama', 'Tibú', 'Toledo', 'Villa Caro', 'Villa del Rosario'
+    'Cácota', 'Chitagá', 'Mutiscua', 'Pamplona', 'Pamplonita', 'Silos'
 ];
 
 const submit = () => {
@@ -105,10 +99,7 @@ const submit = () => {
                                     <select id="tipo_documento" v-model="form.tipo_documento" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="" disabled>Seleccione</option>
                                         <option value="CC">Cédula de Ciudadanía</option>
-                                        <option value="TI">Tarjeta de Identidad</option>
                                         <option value="CE">Cédula de Extranjería</option>
-                                        <option value="PEP">PEP</option>
-                                        <option value="PPT">PPT</option>
                                     </select>
                                     <div v-if="form.errors.tipo_documento" class="text-red-500 text-xs mt-1">{{ form.errors.tipo_documento }}</div>
                                 </div>
@@ -121,20 +112,10 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <!-- 6. Adjuntar Documento -->
-                            <div>
-                                <label for="documento_identidad_path" class="block text-sm font-medium text-gray-700">6. Adjuntar Documento de Identidad (PDF)</label>
-                                <input type="file" id="documento_identidad_path" @input="form.documento_identidad_path = $event.target.files[0]" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                                <progress v-if="form.progress" :value="form.progress.percentage" max="100" class="mt-2 w-full h-2 rounded overflow-hidden bg-gray-200">
-                                    {{ form.progress.percentage }}%
-                                </progress>
-                                <div v-if="form.errors.documento_identidad_path" class="text-red-500 text-xs mt-1">{{ form.errors.documento_identidad_path }}</div>
-                            </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- 7. Sexo -->
+                                <!-- 6. Sexo -->
                                 <div>
-                                    <label for="sexo" class="block text-sm font-medium text-gray-700">7. Sexo</label>
+                                    <label for="sexo" class="block text-sm font-medium text-gray-700">6. Sexo</label>
                                     <select id="sexo" v-model="form.sexo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="" disabled>Seleccione</option>
                                         <option value="Masculino">Masculino</option>
@@ -144,22 +125,22 @@ const submit = () => {
                                     <div v-if="form.errors.sexo" class="text-red-500 text-xs mt-1">{{ form.errors.sexo }}</div>
                                 </div>
 
-                                <!-- 8. Nacionalidad -->
+                                <!-- 7. Nacionalidad -->
                                 <div>
-                                    <label for="nacionalidad" class="block text-sm font-medium text-gray-700">8. Nacionalidad</label>
+                                    <label for="nacionalidad" class="block text-sm font-medium text-gray-700">7. Nacionalidad</label>
                                     <select id="nacionalidad" v-model="form.nacionalidad" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="" disabled>Seleccione</option>
                                         <option value="Colombiana">Colombiana</option>
-                                        <option value="Venezolana">Venezolana</option>
-                                        <option value="Otra">Otra</option>
                                     </select>
                                     <div v-if="form.errors.nacionalidad" class="text-red-500 text-xs mt-1">{{ form.errors.nacionalidad }}</div>
                                 </div>
                             </div>
 
-                            <!-- 9. Zona Residencia -->
+                           
+
+                            <!-- 8. Zona Residencia -->
                             <div>
-                                <label for="zona_residencia" class="block text-sm font-medium text-gray-700">9. Zona de Residencia</label>
+                                <label for="zona_residencia" class="block text-sm font-medium text-gray-700">8. Zona de Residencia</label>
                                 <select id="zona_residencia" v-model="form.zona_residencia" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <option value="" disabled>Seleccione</option>
                                     <option value="Urbana">Urbana</option>
@@ -168,30 +149,30 @@ const submit = () => {
                                 <div v-if="form.errors.zona_residencia" class="text-red-500 text-xs mt-1">{{ form.errors.zona_residencia }}</div>
                             </div>
 
-                            <!-- 10. Direccion -->
+                            <!-- 9. Direccion -->
                             <div>
-                                <label for="direccion" class="block text-sm font-medium text-gray-700">10. Dirección del bien inmueble</label>
+                                <label for="direccion" class="block text-sm font-medium text-gray-700">9. Dirección del bien inmueble</label>
                                 <input type="text" id="direccion" v-model="form.direccion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 <div v-if="form.errors.direccion" class="text-red-500 text-xs mt-1">{{ form.errors.direccion }}</div>
                             </div>
 
-                            <!-- 11. Telefono -->
+                            <!-- 10. Telefono -->
                             <div>
-                                <label for="telefono" class="block text-sm font-medium text-gray-700">11. Teléfono de contacto</label>
+                                <label for="telefono" class="block text-sm font-medium text-gray-700">10. Teléfono de contacto</label>
                                 <input type="number" id="telefono" v-model="form.telefono" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 <div v-if="form.errors.telefono" class="text-red-500 text-xs mt-1">{{ form.errors.telefono }}</div>
                             </div>
 
-                            <!-- 12. Correo -->
+                            <!-- 11. Correo -->
                             <div>
-                                <label for="correo" class="block text-sm font-medium text-gray-700">12. Correo Electrónico</label>
+                                <label for="correo" class="block text-sm font-medium text-gray-700">11. Correo Electrónico</label>
                                 <input type="email" id="correo" v-model="form.correo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                 <div v-if="form.errors.correo" class="text-red-500 text-xs mt-1">{{ form.errors.correo }}</div>
                             </div>
 
-                            <!-- 13. Clasificacion SISBEN -->
+                            <!-- 12. Clasificacion SISBEN -->
                             <div>
-                                <label for="clasificacion_sisben" class="block text-sm font-medium text-gray-700">13. Clasificación SISBEN</label>
+                                <label for="clasificacion_sisben" class="block text-sm font-medium text-gray-700">12. Clasificación SISBEN</label>
                                 <select id="clasificacion_sisben" v-model="form.clasificacion_sisben" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <option value="" disabled>Seleccione</option>
                                     <option value="A1-A5">Grupo A (A1-A5)</option>
@@ -203,31 +184,44 @@ const submit = () => {
                                 <div v-if="form.errors.clasificacion_sisben" class="text-red-500 text-xs mt-1">{{ form.errors.clasificacion_sisben }}</div>
                             </div>
 
-                            <!-- 14. Adjuntar SISBEN -->
-                            <div>
-                                <label for="sisben_path" class="block text-sm font-medium text-gray-700">14. Adjuntar SISBEN (PDF)</label>
-                                <input type="file" id="sisben_path" @input="form.sisben_path = $event.target.files[0]" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                                <div v-if="form.errors.sisben_path" class="text-red-500 text-xs mt-1">{{ form.errors.sisben_path }}</div>
-                            </div>
+                          
 
-                            <!-- 15. Iniciativa Productiva -->
+                            <!-- 13. Iniciativa Productiva -->
                             <div class="flex items-center">
                                 <input type="checkbox" id="tiene_iniciativa" v-model="form.tiene_iniciativa" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                                 <label for="tiene_iniciativa" class="ml-2 block text-sm text-gray-900">
-                                    15. ¿Tiene iniciativa productiva?
+                                    13. ¿Tiene iniciativa productiva?
                                 </label>
                                 <div v-if="form.errors.tiene_iniciativa" class="text-red-500 text-xs mt-1 ml-2">{{ form.errors.tiene_iniciativa }}</div>
                             </div>
 
-                            <!-- 16. Nombre Iniciativa -->
+                            <!-- 14. Nombre Iniciativa -->
                              <transition enter-active-class="transition ease-out duration-200" leave-active-class="transition ease-in duration-150" enter-from-class="opacity-0 translate-y-1" leave-to-class="opacity-0 translate-y-1">
                                 <div v-if="form.tiene_iniciativa">
-                                    <label for="nombre_iniciativa" class="block text-sm font-medium text-gray-700">16. Nombre de la iniciativa</label>
+                                    <label for="nombre_iniciativa" class="block text-sm font-medium text-gray-700">14. Nombre de la iniciativa</label>
                                     <input type="text" id="nombre_iniciativa" v-model="form.nombre_iniciativa" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <div v-if="form.errors.nombre_iniciativa" class="text-red-500 text-xs mt-1">{{ form.errors.nombre_iniciativa }}</div>
                                 </div>
                             </transition>
-
+                             <!-- 15. Adjuntar Documento -->
+                            <div>
+                                <label for="documento_identidad_path" class="block text-sm font-medium text-gray-700">15. Anexos formulario de inscripción (PDF)</label>
+                                <p class="text-xs text-gray-500">Adjuntar los siguientes documentos en formato PDF:</p>
+                                <ul class="text-xs text-gray-500">
+                                    <li>1.Cedula de ciudadanía por ambos lados del documento</li>
+                                    <li>2.Sisbén</li>
+                                    <li>3.Uso de suelo y certificación de riesgo</li>
+                                    <li>4. contrato de arrendamiento , titularidad del bien inmueble a nombre del postulante o certificado de san posesión</li>
+                                    <li>5. Recibo de servicio público del lugar donde se encuentra el emprendimiento  </li>
+                                    <li>6. documento de Aceptación de Términos (documento guía pagina web)</li>
+                                    <li>7. Documento de declaración de NO ser beneficiario en proyectos con recursos Públicos y autorización del uso de datos personales (Juramentada) (documento guía pagina web)</li>
+                                </ul>
+                                <input type="file" id="documento_identidad_path" @input="form.documento_identidad_path = $event.target.files[0]" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                <progress v-if="form.progress" :value="form.progress.percentage" max="100" class="mt-2 w-full h-2 rounded overflow-hidden bg-gray-200">
+                                    {{ form.progress.percentage }}%
+                                </progress>
+                                <div v-if="form.errors.documento_identidad_path" class="text-red-500 text-xs mt-1">{{ form.errors.documento_identidad_path }}</div>
+                            </div>
                             <div class="pt-6">
                                 <button type="submit" :disabled="form.processing" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
                                     <span v-if="form.processing">Enviando...</span>

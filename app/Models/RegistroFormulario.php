@@ -20,7 +20,6 @@ class RegistroFormulario extends Model
         'telefono',
         'correo',
         'clasificacion_sisben',
-        'sisben_path',
         'tiene_iniciativa',
         'nombre_iniciativa',
     ];
