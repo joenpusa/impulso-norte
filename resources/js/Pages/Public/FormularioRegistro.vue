@@ -99,7 +99,6 @@ const submit = () => {
                                     <select id="tipo_documento" v-model="form.tipo_documento" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="" disabled>Seleccione</option>
                                         <option value="CC">Cédula de Ciudadanía</option>
-                                        <option value="CE">Cédula de Extranjería</option>
                                     </select>
                                     <div v-if="form.errors.tipo_documento" class="text-red-500 text-xs mt-1">{{ form.errors.tipo_documento }}</div>
                                 </div>
@@ -131,6 +130,7 @@ const submit = () => {
                                     <select id="nacionalidad" v-model="form.nacionalidad" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <option value="" disabled>Seleccione</option>
                                         <option value="Colombiana">Colombiana</option>
+                                        <option value="Otra">Otra</option>
                                     </select>
                                     <div v-if="form.errors.nacionalidad" class="text-red-500 text-xs mt-1">{{ form.errors.nacionalidad }}</div>
                                 </div>
@@ -208,12 +208,12 @@ const submit = () => {
                                 <label for="documento_identidad_path" class="block text-sm font-medium text-gray-700">15. Anexos formulario de inscripción (PDF)</label>
                                 <p class="text-xs text-gray-500">Adjuntar los siguientes documentos en formato PDF:</p>
                                 <ul class="text-xs text-gray-500">
-                                    <li>1.Cedula de ciudadanía por ambos lados del documento</li>
-                                    <li>2.Sisbén</li>
-                                    <li>3.Uso de suelo y certificación de riesgo</li>
-                                    <li>4. contrato de arrendamiento , titularidad del bien inmueble a nombre del postulante o certificado de san posesión</li>
+                                    <li>1. Cedula de ciudadanía por ambos lados del documento</li>
+                                    <li>2. Sisbén</li>
+                                    <li>3. Uso de suelo y certificación de riesgo</li>
+                                    <li>4. Anexar uno de estos documentos: contrato de arrendamiento , titularidad del bien inmueble a nombre del postulante o certificado de san posesión</li>
                                     <li>5. Recibo de servicio público del lugar donde se encuentra el emprendimiento  </li>
-                                    <li>6. documento de Aceptación de Términos (documento guía pagina web)</li>
+                                    <li>6. Documento de Aceptación de Términos (documento guía pagina web)</li>
                                     <li>7. Documento de declaración de NO ser beneficiario en proyectos con recursos Públicos y autorización del uso de datos personales (Juramentada) (documento guía pagina web)</li>
                                 </ul>
                                 <input type="file" id="documento_identidad_path" @input="form.documento_identidad_path = $event.target.files[0]" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
