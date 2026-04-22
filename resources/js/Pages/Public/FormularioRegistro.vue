@@ -45,7 +45,7 @@ const submit = () => {
         <div class="py-12 bg-gray-50">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-8">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Formulario de Registro - Impulso Norte</h2>
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Formulario de Registro - Impulso Productivo Sur Occidental</h2>
 
                     <div v-if="isClosed" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
                         <p class="font-bold">Formulario Cerrado</p>
