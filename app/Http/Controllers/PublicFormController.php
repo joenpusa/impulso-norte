@@ -83,7 +83,7 @@ class PublicFormController extends Controller
             'fecha_nacimiento' => 'required|date',
             'tipo_documento' => 'required|string',
             'numero_documento' => 'required|string',
-            'documento_identidad_path' => 'required|file|mimes:pdf|max:2048',
+            'documento_identidad_path' => 'required|file|mimes:pdf|max:10240',
             'sexo' => 'required|string',
             'nacionalidad' => 'required|string',
             'zona_residencia' => 'required|string',
