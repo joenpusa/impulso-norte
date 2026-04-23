@@ -44,6 +44,52 @@ class RegistroFormularioController extends Controller
         return redirect()->back()->with('success', 'Configuración actualizada.');
     }
 
+    public function export()
+    {
+        $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function() {
+            $handle = fopen('php://output', 'w');
+            // Agregar BOM para que Excel lea los caracteres UTF-8 correctamente
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Encabezados
+            fputcsv($handle, [
+                'ID', 'Municipio', 'Nombre Completo', 'Fecha de Nacimiento', 'Tipo de Documento', 
+                'Número de Documento', 'Sexo', 'Nacionalidad', 'Zona de Residencia', 
+                'Dirección', 'Teléfono', 'Correo', 'Clasificación Sisben', 
+                'Tiene Iniciativa', 'Nombre Iniciativa', 'Fecha de Registro'
+            ], ';');
+
+            RegistroFormulario::chunk(100, function($registros) use ($handle) {
+                foreach($registros as $registro) {
+                    fputcsv($handle, [
+                        $registro->id,
+                        $registro->municipio,
+                        $registro->nombre_completo,
+                        $registro->fecha_nacimiento ? $registro->fecha_nacimiento->format('Y-m-d') : '',
+                        $registro->tipo_documento,
+                        $registro->numero_documento,
+                        $registro->sexo,
+                        $registro->nacionalidad,
+                        $registro->zona_residencia,
+                        $registro->direccion,
+                        $registro->telefono,
+                        $registro->correo,
+                        $registro->clasificacion_sisben,
+                        $registro->tiene_iniciativa ? 'Sí' : 'No',
+                        $registro->nombre_iniciativa,
+                        $registro->created_at ? $registro->created_at->format('Y-m-d H:i:s') : ''
+                    ], ';');
+                }
+            });
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="registros.csv"');
+
+        return $response;
+    }
+
     public function destroy(RegistroFormulario $registro)
     {
         if ($registro->documento_identidad_path) {

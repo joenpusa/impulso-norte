@@ -1,12 +1,28 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     registros: Object,
 });
 
 const form = useForm({});
+
+const viewingRegistro = ref(null);
+const isModalOpen = ref(false);
+
+const viewRegistro = (registro) => {
+    viewingRegistro.value = registro;
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+    setTimeout(() => { viewingRegistro.value = null; }, 300);
+};
 
 const deleteRegistro = (id) => {
     if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
@@ -17,6 +33,13 @@ const deleteRegistro = (id) => {
 const formatDate = (dateString) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('es-CO');
+};
+
+const formatDateYYYYMMDD = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toISOString().split('T')[0];
 };
 
 const getFileUrl = (path) => {
@@ -34,9 +57,14 @@ const getFileUrl = (path) => {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Registros del Formulario
                 </h2>
-                <Link :href="route('admin.registros.settings')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Configuración
-                </Link>
+                <div class="flex space-x-2">
+                    <a :href="route('admin.registros.export')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Exportar a Excel
+                    </a>
+                    <Link :href="route('admin.registros.settings')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Configuración
+                    </Link>
+                </div>
             </div>
         </template>
 
@@ -82,6 +110,7 @@ const getFileUrl = (path) => {
                                             <a v-if="registro.documento_identidad_path" :href="getFileUrl(registro.documento_identidad_path)" target="_blank" class="text-indigo-600 hover:text-indigo-900">Ver Anexo</a>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button @click="viewRegistro(registro)" class="text-blue-600 hover:text-blue-900 mr-3">Ver</button>
                                             <button @click="deleteRegistro(registro.id)" class="text-red-600 hover:text-red-900">Eliminar</button>
                                         </td>
                                     </tr>
@@ -111,5 +140,53 @@ const getFileUrl = (path) => {
                 </div>
             </div>
         </div>
+
+        <!-- Modal Detalles -->
+        <Modal :show="isModalOpen" @close="closeModal">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">
+                    Detalles del Registro
+                </h2>
+                <div v-if="viewingRegistro" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
+                    <div><span class="font-semibold text-gray-600">ID:</span> {{ viewingRegistro.id }}</div>
+                    <div><span class="font-semibold text-gray-600">Fecha de Registro:</span> {{ formatDate(viewingRegistro.created_at) }}</div>
+                    
+                    <div class="col-span-1 md:col-span-2"><span class="font-semibold text-gray-600">Nombre Completo:</span> {{ viewingRegistro.nombre_completo }}</div>
+                    
+                    <div><span class="font-semibold text-gray-600">Tipo Documento:</span> {{ viewingRegistro.tipo_documento }}</div>
+                    <div><span class="font-semibold text-gray-600">Número:</span> {{ viewingRegistro.numero_documento }}</div>
+                    
+                    <div><span class="font-semibold text-gray-600">Municipio:</span> {{ viewingRegistro.municipio }}</div>
+                    <div><span class="font-semibold text-gray-600">Fecha Nacimiento:</span> {{ formatDateYYYYMMDD(viewingRegistro.fecha_nacimiento) }}</div>
+                    
+                    <div><span class="font-semibold text-gray-600">Sexo:</span> {{ viewingRegistro.sexo }}</div>
+                    <div><span class="font-semibold text-gray-600">Nacionalidad:</span> {{ viewingRegistro.nacionalidad }}</div>
+                    
+                    <div class="col-span-1 md:col-span-2"><span class="font-semibold text-gray-600">Zona Residencia:</span> {{ viewingRegistro.zona_residencia }}</div>
+                    <div class="col-span-1 md:col-span-2"><span class="font-semibold text-gray-600">Dirección:</span> {{ viewingRegistro.direccion }}</div>
+                    
+                    <div><span class="font-semibold text-gray-600">Teléfono:</span> {{ viewingRegistro.telefono }}</div>
+                    <div><span class="font-semibold text-gray-600">Correo:</span> {{ viewingRegistro.correo }}</div>
+                    
+                    <div class="col-span-1 md:col-span-2"><span class="font-semibold text-gray-600">Clasificación Sisbén:</span> {{ viewingRegistro.clasificacion_sisben }}</div>
+                    
+                    <div><span class="font-semibold text-gray-600">Tiene Iniciativa:</span> {{ viewingRegistro.tiene_iniciativa ? 'Sí' : 'No' }}</div>
+                    <div><span class="font-semibold text-gray-600">Nombre Iniciativa:</span> {{ viewingRegistro.nombre_iniciativa || 'No aplica' }}</div>
+                    
+                    <div class="col-span-1 md:col-span-2 mt-2" v-if="viewingRegistro.documento_identidad_path">
+                        <span class="font-semibold text-gray-600">Anexo Identidad:</span>
+                        <br>
+                        <a :href="getFileUrl(viewingRegistro.documento_identidad_path)" target="_blank" class="text-indigo-600 hover:text-indigo-900 underline">
+                            Descargar / Ver Documento
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <SecondaryButton @click="closeModal">Cerrar</SecondaryButton>
+                </div>
+            </div>
+        </Modal>
+
     </AuthenticatedLayout>
 </template>
