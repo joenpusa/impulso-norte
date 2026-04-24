@@ -215,6 +215,7 @@ const submit = () => {
                                     <li>5. Recibo de servicio público del lugar donde se encuentra el emprendimiento  </li>
                                     <li>6. Documento de Aceptación de Términos (documento guía pagina web)</li>
                                     <li>7. Documento de declaración de NO ser beneficiario en proyectos con recursos Públicos y autorización del uso de datos personales (Juramentada) (documento guía pagina web)</li>
+                                    <li>8. Perfil del Negocio: descripción del negocio</li>
                                 </ul>
                                 <input type="file" id="documento_identidad_path" @input="form.documento_identidad_path = $event.target.files[0]" accept=".pdf" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                                 <progress v-if="form.progress" :value="form.progress.percentage" max="100" class="mt-2 w-full h-2 rounded overflow-hidden bg-gray-200">
