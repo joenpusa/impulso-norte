@@ -110,4 +110,26 @@ class PublicFormController extends Controller
 
         return redirect()->back()->with('success', 'Formulario enviado exitosamente.');
     }
+
+    public function consultaIndex()
+    {
+        return Inertia::render('Public/ConsultaBeneficiario', [
+            ...$this->getSharedProps(),
+        ]);
+    }
+
+    public function consultaCheck(Request $request)
+    {
+        $request->validate([
+            'numero_documento' => 'required|string',
+        ]);
+
+        $registro = RegistroFormulario::where('numero_documento', $request->numero_documento)->first();
+
+        if ($registro && $registro->es_beneficiario) {
+            return redirect()->back()->with('success', 'Revisada la base de datos se evidencia que ha sido seleccionado como beneficiario del programa');
+        } else {
+            return redirect()->back()->with('error', 'El documento digitado no se encuentra dentro de la base de datos de beneficiarios');
+        }
+    }
 }

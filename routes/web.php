@@ -48,5 +48,9 @@ require __DIR__ . '/auth.php';
 Route::get('/formulario-registro', [\App\Http\Controllers\PublicFormController::class, 'index'])->name('form.index');
 Route::post('/formulario-registro', [\App\Http\Controllers\PublicFormController::class, 'store'])->name('form.store');
 
+// Public Consulta Beneficiario Route
+Route::get('/consulta-beneficiario', [\App\Http\Controllers\PublicFormController::class, 'consultaIndex'])->name('consulta.index');
+Route::post('/consulta-beneficiario', [\App\Http\Controllers\PublicFormController::class, 'consultaCheck'])->name('consulta.check');
+
 // Dynamic Public Page Route
 Route::get('/{slug}', [\App\Http\Controllers\PublicPageController::class, 'show'])->name('pages.show');
