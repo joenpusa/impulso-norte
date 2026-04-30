@@ -22,10 +22,12 @@ class RegistroFormulario extends Model
         'clasificacion_sisben',
         'tiene_iniciativa',
         'nombre_iniciativa',
+        'es_beneficiario',
     ];
 
     protected $casts = [
         'fecha_nacimiento' => 'date',
         'tiene_iniciativa' => 'boolean',
+        'es_beneficiario' => 'boolean',
     ];
 }

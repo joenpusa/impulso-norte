@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
         Route::get('registros', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'index'])->name('registros.index');
         Route::get('registros/export', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'export'])->name('registros.export');
         Route::delete('registros/{registro}', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'destroy'])->name('registros.destroy');
+        Route::post('registros/{registro}/toggle-beneficiario', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'toggleBeneficiario'])->name('registros.toggleBeneficiario');
         Route::get('registros/settings', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'settings'])->name('registros.settings');
         Route::post('registros/settings', [\App\Http\Controllers\Admin\RegistroFormularioController::class, 'updateSettings'])->name('registros.settings.update');
     });

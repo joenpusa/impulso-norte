@@ -56,7 +56,7 @@ class RegistroFormularioController extends Controller
                 'ID', 'Municipio', 'Nombre Completo', 'Fecha de Nacimiento', 'Tipo de Documento', 
                 'Número de Documento', 'Sexo', 'Nacionalidad', 'Zona de Residencia', 
                 'Dirección', 'Teléfono', 'Correo', 'Clasificación Sisben', 
-                'Tiene Iniciativa', 'Nombre Iniciativa', 'Fecha de Registro'
+                'Tiene Iniciativa', 'Nombre Iniciativa', 'Fecha de Registro', 'Es Beneficiario'
             ], ';');
 
             RegistroFormulario::chunk(100, function($registros) use ($handle) {
@@ -77,7 +77,8 @@ class RegistroFormularioController extends Controller
                         $registro->clasificacion_sisben,
                         $registro->tiene_iniciativa ? 'Sí' : 'No',
                         $registro->nombre_iniciativa,
-                        $registro->created_at ? $registro->created_at->format('Y-m-d H:i:s') : ''
+                        $registro->created_at ? $registro->created_at->format('Y-m-d H:i:s') : '',
+                        $registro->es_beneficiario ? 'Sí' : 'No'
                     ], ';');
                 }
             });
@@ -104,5 +105,14 @@ class RegistroFormularioController extends Controller
 
         $registro->delete();
         return redirect()->back()->with('success', 'Registro eliminado.');
+    }
+
+    public function toggleBeneficiario(RegistroFormulario $registro)
+    {
+        $registro->es_beneficiario = !$registro->es_beneficiario;
+        $registro->save();
+
+        $status = $registro->es_beneficiario ? 'marcado como beneficiario' : 'desmarcado como beneficiario';
+        return redirect()->back()->with('success', "Registro {$status}.");
     }
 }
