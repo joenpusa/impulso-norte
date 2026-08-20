@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Carousel from '@/Components/Carousel.vue';
+import CarouselVertical from '@/Components/CarouselVertical.vue';
 import Gallery from '@/Components/Gallery.vue';
 import Timeline from '@/Components/Timeline.vue';
 
@@ -46,6 +47,11 @@ const props = defineProps({
                         <!-- Debug: Uncomment if needed -->
                         <!-- <pre>{{ element.content }}</pre> -->
                         <Carousel :images="element.content" />
+                    </div>
+
+                    <!-- Carousel Vertical Element -->
+                    <div v-if="element.type === 'carousel_vertical'">
+                        <CarouselVertical :images="element.content" />
                     </div>
 
                     <!-- Gallery Element -->

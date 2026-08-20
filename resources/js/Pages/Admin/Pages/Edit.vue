@@ -45,7 +45,7 @@ const elements = ref(props.page.elements ? JSON.parse(JSON.stringify(props.page.
 
 const addElement = (type) => {
     let content = '';
-    if (type === 'carousel' || type === 'gallery' || type === 'timeline') {
+    if (type === 'carousel' || type === 'carousel_vertical' || type === 'gallery' || type === 'timeline') {
         content = [];
     }
     
@@ -202,7 +202,10 @@ const saveElements = () => {
                                     + Contenido
                                 </SecondaryButton>
                                 <SecondaryButton @click="addElement('carousel')" class="text-xs">
-                                    + Carrusel
+                                    + Carrusel Hor.
+                                </SecondaryButton>
+                                <SecondaryButton @click="addElement('carousel_vertical')" class="text-xs">
+                                    + Carrusel Ver.
                                 </SecondaryButton>
                                 <SecondaryButton @click="addElement('gallery')" class="text-xs">
                                     + Galería
@@ -259,7 +262,7 @@ const saveElements = () => {
                                     </div>
 
                                     <!-- Type: Carousel / Gallery -->
-                                    <div v-if="element.type === 'carousel' || element.type === 'gallery'">
+                                    <div v-if="element.type === 'carousel' || element.type === 'carousel_vertical' || element.type === 'gallery'">
                                         <div class="flex flex-wrap gap-2 mb-2">
                                             <div v-for="(img, imgIdx) in element.content" :key="imgIdx" class="relative w-24 h-24 border rounded overflow-hidden">
                                                 <img :src="img" class="w-full h-full object-cover" />
