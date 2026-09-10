@@ -52,5 +52,10 @@ Route::post('/formulario-registro', [\App\Http\Controllers\PublicFormController:
 Route::get('/consulta-beneficiario', [\App\Http\Controllers\PublicFormController::class, 'consultaIndex'])->name('consulta.index');
 Route::post('/consulta-beneficiario', [\App\Http\Controllers\PublicFormController::class, 'consultaCheck'])->name('consulta.check');
 
+// Public Consulta Beneficiarios Insumos Route
+Route::get('/consultabeneficiariosinsumos', [\App\Http\Controllers\PublicFormController::class, 'consultaInsumosIndex'])->name('consulta-insumos.index');
+Route::post('/consultabeneficiariosinsumos', [\App\Http\Controllers\PublicFormController::class, 'consultaInsumosCheck'])->name('consulta-insumos.check');
+
 // Dynamic Public Page Route
 Route::get('/{slug}', [\App\Http\Controllers\PublicPageController::class, 'show'])->name('pages.show');
+

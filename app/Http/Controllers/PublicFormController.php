@@ -132,4 +132,44 @@ class PublicFormController extends Controller
             return redirect()->back()->with('error', 'El documento digitado no se encuentra dentro de la base de datos de beneficiarios');
         }
     }
+
+    public function consultaInsumosIndex()
+    {
+        return Inertia::render('Public/ConsultaBeneficiariosInsumos', [
+            ...$this->getSharedProps(),
+        ]);
+    }
+
+    public function consultaInsumosCheck(Request $request)
+    {
+        $request->validate([
+            'numero_documento' => 'required|string',
+        ]);
+
+        $nombre = \App\Data\BeneficiariosInsumos::buscar($request->numero_documento);
+
+        if ($request->wantsJson()) {
+            if ($nombre) {
+                return response()->json([
+                    'encontrado' => true,
+                    'nombre' => $nombre,
+                    'mensaje' => 'Has sido seleccionado como beneficiario de la etapa de equipamiento productivo.',
+                ]);
+            }
+            return response()->json([
+                'encontrado' => false,
+                'mensaje' => 'No se encontró el número de documento.',
+            ], 200);
+        }
+
+        if ($nombre) {
+            return redirect()->back()
+                ->with('success', "¡Felicidades! {$nombre} ha sido seleccionado como beneficiario de la etapa de equipamiento productivo.")
+                ->with('beneficiario_nombre', $nombre);
+        } else {
+            return redirect()->back()
+                ->with('error', 'No se encontró el número de documento.');
+        }
+    }
 }
+
